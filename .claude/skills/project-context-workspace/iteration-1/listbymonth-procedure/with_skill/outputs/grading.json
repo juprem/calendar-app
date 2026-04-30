@@ -1,0 +1,33 @@
+{
+  "eval_id": 1,
+  "eval_name": "listbymonth-procedure",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
+      "passed": true,
+      "evidence": "Response explicitly states 'File to modify: src/integrations/trpc/router/calendarRouter.ts'"
+    },
+    {
+      "text": "Uses Prisma ORM (prisma.day.findMany or similar), not raw SQL or fetch",
+      "passed": true,
+      "evidence": "Response uses prisma.day.findMany({ where: { month, year }, include: { rdv: true } })"
+    },
+    {
+      "text": "Uses Zod to validate the month and year inputs",
+      "passed": true,
+      "evidence": "Response defines ListByMonthSchema with z.number().int().min(1).max(12) for month and z.number().int() for year"
+    },
+    {
+      "text": "Queries through the day model to get rdv records (correct schema relationship)",
+      "passed": true,
+      "evidence": "Response queries prisma.day with include: { rdv: true }, correctly modelling the day→rdv one-to-many relation"
+    },
+    {
+      "text": "Does NOT require changes to router.ts (calendarRouter is already registered there)",
+      "passed": true,
+      "evidence": "Response explicitly says 'No other files need changing: router.ts — already registers calendarRouter under calendar'"
+    }
+  ],
+  "pass_rate": 1.0
+}

@@ -6,7 +6,7 @@ interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'cla
 
 export function Button({ children, ...props }: ButtonProps) {
   return (
-    <button className="flex items-center cursor-pointer gap-4 hover:bg-gray-200 p-3 rounded-xl" {...props}>
+    <button className="border-1 border-gray-300 flex items-center cursor-pointer gap-4 hover:bg-gray-200 p-3 rounded-xl" {...props}>
       {children}
     </button>
   );

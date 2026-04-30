@@ -1,0 +1,33 @@
+{
+  "eval_id": 2,
+  "eval_name": "priority-field-e2e",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions updating prisma/schema.prisma and running npx prisma db push",
+      "passed": true,
+      "evidence": "Step 1 and 2 explicitly cover adding Priority enum to prisma/schema.prisma and running 'npx prisma db push'"
+    },
+    {
+      "text": "Mentions updating calendarRouter.ts to include priority in the input/output",
+      "passed": true,
+      "evidence": "Step 4 explicitly targets src/integrations/trpc/router/calendarRouter.ts, extending RdvCreateSchema and the Prisma create call"
+    },
+    {
+      "text": "Mentions updating src/components/Layout/AddRdv/ for the form field",
+      "passed": true,
+      "evidence": "Step 6 targets src/components/Layout/AddRdv/AddRdv.tsx with Ant Design Select component code"
+    },
+    {
+      "text": "Mentions updating src/components/DailyView/RdvCard/ to display the priority",
+      "passed": true,
+      "evidence": "Step 7 explicitly targets src/components/DailyView/RdvCard/RdvCard.tsx with colored badge implementation"
+    },
+    {
+      "text": "Mentions updating the Zod schema in src/models/",
+      "passed": true,
+      "evidence": "Step 3 targets src/models/CalendarModel.ts, adding RdvPrioritySchema and RdvPriority type"
+    }
+  ],
+  "pass_rate": 1.0
+}

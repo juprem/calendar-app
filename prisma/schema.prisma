@@ -1,0 +1,39 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+  runtime  = "cloudflare"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model day {
+  id   Int      @id(map: "Day_pkey") @default(autoincrement())
+  date DateTime @unique @db.Date
+  rdv  rdv[]
+}
+
+model rdv {
+  id           Int      @id @default(autoincrement())
+  day_id       Int
+  start_hour   String   @db.VarChar
+  end_hour     String
+  name         String   @db.VarChar
+  rdv_type     String?  @db.VarChar
+  is_confirmed Boolean?
+  day          day      @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
+
+  @@index([day_id], map: "index_day")
+}
+
+model contact {
+  id           Int     @id @default(autoincrement())
+  firstname    String  @db.VarChar
+  lastname     String  @db.VarChar
+  email        String? @db.VarChar
+  phone_number String? @db.VarChar
+  notes        String?
+
+  @@unique([firstname, lastname], map: "fullname")
+}

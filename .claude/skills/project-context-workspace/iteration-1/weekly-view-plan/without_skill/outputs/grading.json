@@ -1,0 +1,33 @@
+{
+  "eval_id": 0,
+  "eval_name": "weekly-view-plan",
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Mentions the Zustand calendarStore and the WEEKLY mode value",
+      "passed": false,
+      "evidence": "Response did not mention Zustand, calendarStore, or WEEKLY mode. Suggested Redux/Context generically."
+    },
+    {
+      "text": "References src/components/DailyView/ as the pattern/template to follow",
+      "passed": false,
+      "evidence": "Response invented its own component structure (WeekView.tsx, WeekGrid.tsx, etc.) with no reference to DailyView"
+    },
+    {
+      "text": "Mentions Day.js for week-range date calculations",
+      "passed": false,
+      "evidence": "Response recommended date-fns (startOfWeek, eachDayOfInterval) — the wrong library for this project"
+    },
+    {
+      "text": "Suggests creating the component under src/components/ (e.g. WeeklyView/)",
+      "passed": false,
+      "evidence": "Response suggested src/components/calendar/ path, which does not exist in this project"
+    },
+    {
+      "text": "Recommends Ant Design for UI components",
+      "passed": false,
+      "evidence": "Response did not mention Ant Design. Suggested framer-motion for transitions."
+    }
+  ],
+  "pass_rate": 0.0
+}

@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "priority-field-e2e",
+  "prompt": "I need to add a 'priority' field (low/medium/high) to the rdv (appointment) model. Walk me through every change needed end-to-end.",
+  "assertions": [
+    {
+      "id": "mentions-prisma-schema-change",
+      "description": "Mentions updating prisma/schema.prisma and running npx prisma db push"
+    },
+    {
+      "id": "mentions-trpc-router-update",
+      "description": "Mentions updating calendarRouter.ts to include priority in the input/output"
+    },
+    {
+      "id": "mentions-addrv-ui-component",
+      "description": "Mentions updating src/components/Layout/AddRdv/ for the form field"
+    },
+    {
+      "id": "mentions-rdvcard-display",
+      "description": "Mentions updating src/components/DailyView/RdvCard/ to display the priority"
+    },
+    {
+      "id": "mentions-zod-model",
+      "description": "Mentions updating the Zod schema in src/models/"
+    }
+  ]
+}

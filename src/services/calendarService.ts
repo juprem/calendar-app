@@ -1,11 +1,38 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '#/integrations/trpc/react.ts';
-import type { Day } from '#/models/CalendarModel.ts';
+import type { Dayjs } from 'dayjs';
 
-export const useGetDailyRdv = (day: Day) => {
+export const useGetDailyRdv = (day: Dayjs) => {
   const trpc = useTRPC();
 
-  console.log(day);
+  return useQuery(trpc.calendar.listByDay.queryOptions(day.format('YYYY-MM-DD')));
+};
 
-  return useQuery(trpc.calendar.listByDay.queryOptions(day));
+export const useGetWeeklyRdv = (startDay: number, startMonth: number, startYear: number) => {
+  const trpc = useTRPC();
+  return useQuery(trpc.calendar.listByWeek.queryOptions({ startDay, startMonth, startYear }));
+};
+
+export const useGetMonthlyRdv = (month: number, year: number) => {
+  const trpc = useTRPC();
+  return useQuery(trpc.calendar.listByMonth.queryOptions({ month, year }));
+};
+
+export const useAddRdv = () => {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    ...trpc.calendar.addRdv.mutationOptions(),
+    onSuccess: (_, variables) => {
+      const [year, month] = variables.date.split('-').map(Number);
+
+      queryClient.invalidateQueries({
+        queryKey: trpc.calendar.listByDay.queryKey(variables.date),
+      });
+      queryClient.invalidateQueries({
+        queryKey: trpc.calendar.listByMonth.queryKey({ month, year }),
+      });
+    },
+  });
 };

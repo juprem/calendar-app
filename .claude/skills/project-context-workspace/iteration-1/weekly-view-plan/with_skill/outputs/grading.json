@@ -1,0 +1,33 @@
+{
+  "eval_id": 0,
+  "eval_name": "weekly-view-plan",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions the Zustand calendarStore and the WEEKLY mode value",
+      "passed": true,
+      "evidence": "Response explicitly references useCalendarStore, CalendarMode with 'WEEKLY', and setCalendarMode from src/store/calendarStore.ts"
+    },
+    {
+      "text": "References src/components/DailyView/ as the pattern/template to follow",
+      "passed": true,
+      "evidence": "Response says WeeklyViewWrapper should mirror 'the pattern in src/components/DailyView/DailyViewWrapper.tsx' and recommends reusing RdvCard"
+    },
+    {
+      "text": "Mentions Day.js for week-range date calculations",
+      "passed": true,
+      "evidence": "Response recommends Day.js isoWeek plugin: 'dayjs.extend(isoWeek)', startOf('isoWeek'), .add(n, 'day')"
+    },
+    {
+      "text": "Suggests creating the component under src/components/ (e.g. WeeklyView/)",
+      "passed": true,
+      "evidence": "Response specifies 'src/components/WeeklyView/WeeklyView.tsx' and 'src/components/WeeklyView/WeeklyViewWrapper.tsx'"
+    },
+    {
+      "text": "Recommends Ant Design for UI components",
+      "passed": true,
+      "evidence": "Response mentions Ant Design DatePicker (picker='week'), Badge, and Tooltip explicitly"
+    }
+  ],
+  "pass_rate": 1.0
+}

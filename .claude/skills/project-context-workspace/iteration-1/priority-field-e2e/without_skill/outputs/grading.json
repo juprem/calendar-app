@@ -1,0 +1,33 @@
+{
+  "eval_id": 2,
+  "eval_name": "priority-field-e2e",
+  "run": "without_skill",
+  "expectations": [
+    {
+      "text": "Mentions updating prisma/schema.prisma and running npx prisma db push",
+      "passed": false,
+      "evidence": "Mentioned prisma/schema.prisma but recommended 'npx prisma migrate dev' instead of 'npx prisma db push' — wrong command for this Neon/Cloudflare Workers setup"
+    },
+    {
+      "text": "Mentions updating calendarRouter.ts to include priority in the input/output",
+      "passed": false,
+      "evidence": "Mentioned tRPC router generically (Layer 4) but did not reference the actual file path calendarRouter.ts"
+    },
+    {
+      "text": "Mentions updating src/components/Layout/AddRdv/ for the form field",
+      "passed": false,
+      "evidence": "Layer 6 says 'the create/edit form component' with a generic <select> — no actual file path referenced"
+    },
+    {
+      "text": "Mentions updating src/components/DailyView/RdvCard/ to display the priority",
+      "passed": false,
+      "evidence": "Layer 7 says 'the appointment card component' — no actual file path. Does not mention RdvCard.tsx or DailyView."
+    },
+    {
+      "text": "Mentions updating the Zod schema in src/models/",
+      "passed": true,
+      "evidence": "Layer 3 covers Zod validation schemas with PriorityEnum = z.enum([...]) though without the correct file path src/models/CalendarModel.ts"
+    }
+  ],
+  "pass_rate": 0.2
+}

@@ -1,0 +1,23 @@
+{
+  "skill_name": "project-context",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "I want to add a weekly calendar view to this app. What files do I need to create or modify, and which libraries/patterns should I use?",
+      "expected_output": "A concrete plan referencing: the Zustand calendarStore (WEEKLY mode), DailyView as a pattern to follow, TanStack Router file for a route if needed, Ant Design for UI, Day.js for week calculations, and correct file paths under src/components/ and src/routes/.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Add a tRPC procedure called 'listByMonth' that returns all appointments for a given month and year.",
+      "expected_output": "Code that: (1) adds the procedure to calendarRouter.ts in src/integrations/trpc/router/, (2) uses Prisma to query the 'rdv' model via the 'day' model relation, (3) validates input with Zod, (4) registers nothing extra in router.ts (it's already in calendarRouter). Should NOT use REST or fetch directly.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I need to add a 'priority' field (low/medium/high) to the rdv (appointment) model. Walk me through every change needed end-to-end.",
+      "expected_output": "Full walkthrough covering: (1) prisma/schema.prisma change + npx prisma db push, (2) tRPC input schema update in calendarRouter.ts, (3) Zod model update in src/models/, (4) UI form update in src/components/Layout/AddRdv/, (5) display update in src/components/DailyView/RdvCard/. Should not mention unrelated files.",
+      "files": []
+    }
+  ]
+}

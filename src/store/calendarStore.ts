@@ -1,15 +1,15 @@
 import { create } from 'zustand/react';
-import type { CalendarMode } from '#/models/CalendarModel.ts';
+import dayjs, { type Dayjs } from 'dayjs';
 
 type Action = {
-  setCalendarMode: (calendarMode: CalendarMode) => void;
-}
+  setDay: (newDay: Dayjs) => void;
+};
 
 type State = {
-  mode: CalendarMode;
-}
+  day: Dayjs;
+};
 
 export const useCalendarStore = create<State & Action>((set) => ({
-  mode: 'DAILY',
-  setCalendarMode: (calendarMode: CalendarMode) => set({ mode: calendarMode }),
+  day: dayjs(),
+  setDay: (day: Dayjs) => set({ day }),
 }));
