@@ -1,0 +1,35 @@
+{
+  "eval_id": 1,
+  "eval_name": "listbymonth-procedure",
+  "prompt": "Add a tRPC procedure called 'listByMonth' that returns all appointments for a given month and year.",
+  "assertions": [
+    {
+      "id": "correct-router-file",
+      "description": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)"
+    },
+    {
+      "id": "uses-prisma-not-raw-sql",
+      "description": "Uses Prisma ORM (prisma.day.findMany or similar), not raw SQL or fetch"
+    },
+    {
+      "id": "zod-input-validation",
+      "description": "Uses Zod to validate the month and year inputs"
+    },
+    {
+      "id": "queries-day-rdv-relation",
+      "description": "Queries through the day model to get rdv records (correct schema relationship)"
+    },
+    {
+      "id": "no-router-ts-change-needed",
+      "description": "Does NOT require changes to router.ts (calendarRouter is already registered there)"
+    },
+    {
+      "id": "uses-date-field-not-month-year-ints",
+      "description": "Uses the single 'date' DateTime field with a date-range query (gte/lt), NOT integer month/year fields — matches the real Prisma schema (new in iteration-2 skill)"
+    },
+    {
+      "id": "notes-procedure-already-exists",
+      "description": "Ideally notes that listByMonth already exists in calendarRouter.ts (since the skill now lists all procedures)"
+    }
+  ]
+}

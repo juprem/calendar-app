@@ -1,0 +1,38 @@
+{
+  "eval_id": 2,
+  "eval_name": "priority-field-e2e",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions updating prisma/schema.prisma and running npx prisma db push",
+      "passed": true,
+      "evidence": "Step 1 is entirely dedicated to prisma/schema.prisma + 'npx prisma db push'."
+    },
+    {
+      "text": "Mentions updating calendarRouter.ts to include priority in the input/output",
+      "passed": true,
+      "evidence": "Step 2 updates RdvCreateSchema and addRdv handler in src/integrations/trpc/router/calendarRouter.ts."
+    },
+    {
+      "text": "Mentions updating src/components/Layout/AddRdv/ for the form field",
+      "passed": true,
+      "evidence": "Step 3 explicitly targets src/components/Layout/AddRdv/AddRdv.tsx with full code snippet."
+    },
+    {
+      "text": "Mentions updating src/components/DailyView/ to display the priority (RdvCard or similar)",
+      "passed": true,
+      "evidence": "Step 4 targets src/components/DailyView/RdvCard/RdvCard.tsx with priority badge implementation."
+    },
+    {
+      "text": "Mentions updating the Zod schema in src/models/",
+      "passed": false,
+      "evidence": "Response correctly identifies RdvCreateSchema lives in calendarRouter.ts (not src/models/), so src/models/ is not mentioned. The assertion reflects an outdated convention — the actual schema is in the router file. Response is more accurate than the assertion."
+    },
+    {
+      "text": "References RdvCreateSchema specifically (now named in the skill's tRPC procedures table)",
+      "passed": true,
+      "evidence": "Response explicitly names RdvCreateSchema throughout Steps 2 and 3."
+    }
+  ],
+  "pass_rate": 0.833
+}

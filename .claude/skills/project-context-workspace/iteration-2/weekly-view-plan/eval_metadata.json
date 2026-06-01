@@ -1,0 +1,35 @@
+{
+  "eval_id": 0,
+  "eval_name": "weekly-view-plan",
+  "prompt": "I want to add a weekly calendar view to this app. What files do I need to create or modify, and which libraries/patterns should I use?",
+  "assertions": [
+    {
+      "id": "mentions-zustand-weekly-mode",
+      "description": "Mentions the Zustand calendarStore and the WEEKLY mode value"
+    },
+    {
+      "id": "references-dailyview-as-pattern",
+      "description": "References src/components/DailyView/ as the pattern/template to follow"
+    },
+    {
+      "id": "mentions-dayjs-for-week",
+      "description": "Mentions Day.js for week-range date calculations"
+    },
+    {
+      "id": "correct-component-path",
+      "description": "Suggests creating the component under src/components/ (e.g. WeeklyView/)"
+    },
+    {
+      "id": "mentions-ant-design",
+      "description": "Recommends Ant Design for UI components"
+    },
+    {
+      "id": "mentions-listbyweek-already-exists",
+      "description": "Notes that the listByWeek tRPC procedure already exists in calendarRouter.ts (new in iteration-2 skill)"
+    },
+    {
+      "id": "correct-route-path",
+      "description": "References the correct route file src/routes/hebdomadaire/ or the /hebdomadaire URL (from the new route map)"
+    }
+  ]
+}

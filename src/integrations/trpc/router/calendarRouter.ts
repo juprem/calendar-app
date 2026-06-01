@@ -15,18 +15,19 @@ export const RdvCreateSchema = z.object({
 const toUTCDate = (isoDate: string) => new Date(`${isoDate}T00:00:00.000Z`);
 
 export const calendarRouter = {
-  listByDay: publicProcedure
-    .input(z.string())
-    .query(({ input }) =>
-      prisma.day.findFirst({
-        where: { date: toUTCDate(input) },
-        include: { rdv: true },
-      }),
-    ),
+  listByDay: publicProcedure.input(z.string()).query(async ({ input }) =>
+    await prisma.day.findFirst({
+      where: { date: toUTCDate(input) },
+      include: { rdv: true },
+    }),
+  ),
   listByWeek: publicProcedure
     .input(z.object({ startDay: z.number(), startMonth: z.number(), startYear: z.number() }))
     .query(async ({ input }) => {
-      const start = dayjs().year(input.startYear).month(input.startMonth - 1).date(input.startDay);
+      const start = dayjs()
+        .year(input.startYear)
+        .month(input.startMonth - 1)
+        .date(input.startDay);
       return Promise.all(
         Array.from({ length: 7 }, (_, i) => {
           const d = start.add(i, 'day');
@@ -37,24 +38,24 @@ export const calendarRouter = {
         }),
       );
     }),
-  listByMonth: publicProcedure
-    .input(z.object({ month: z.number(), year: z.number() }))
-    .query(({ input }) => {
-      const startMonth = dayjs().year(input.year).month(input.month - 1).date(1);
-      const startNextMonth = startMonth.add(1, 'month');
+  listByMonth: publicProcedure.input(z.object({ month: z.number(), year: z.number() })).query(async ({ input }) => {
+    const startMonth = dayjs()
+      .year(input.year)
+      .month(input.month - 1)
+      .date(1);
+    const startNextMonth = startMonth.add(1, 'month');
 
-      return prisma.day.findMany({
-        where: {
-          date: {
-            gte: new Date(startMonth.format('YYYY-MM-DD')),
-            lt: new Date(startNextMonth.format('YYYY-MM-DD')),
-          },
+    return prisma.day.findMany({
+      where: {
+        date: {
+          gte: new Date(startMonth.format('YYYY-MM-DD')),
+          lt: new Date(startNextMonth.format('YYYY-MM-DD')),
         },
-        include: { rdv: { orderBy: { start_hour: 'asc' } } },
-        orderBy: { date: 'asc' },
-      })
       },
-    ),
+      include: { rdv: { orderBy: { start_hour: 'asc' } } },
+      orderBy: { date: 'asc' },
+    });
+  }),
   addRdv: publicProcedure.input(RdvCreateSchema).mutation(async ({ input }) => {
     const date = toUTCDate(input.date);
 

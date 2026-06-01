@@ -1,9 +1,9 @@
 import { type ReactNode, useState } from 'react';
 import { Button } from 'antd';
-import { CalendarDays, Plus, UserPlus } from 'lucide-react';
+import { CalendarDays, Plus } from 'lucide-react';
 import { Show } from '@clerk/tanstack-react-start';
 import { AddRdv } from '#/components/Layout/AddRdv/AddRdv.tsx';
-import { useLocation, useNavigate } from '@tanstack/react-router';
+import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { AddContact } from '#/components/Layout/AddContact/AddContact.tsx';
 
 interface LayoutProps {
@@ -27,12 +27,15 @@ export function Layout({ children }: LayoutProps) {
       <Show when="signed-in">
         <header className="flex items-center justify-between px-6 py-2.5 border-b border-[#E7E5E4] bg-white sticky top-0 z-50">
           <div className="flex items-center gap-1">
-            <div className="flex items-center gap-2 mr-4">
+            <Link
+              to="/journaliere"
+              className="flex items-center gap-2 mr-4 hover:opacity-70 transition-opacity"
+            >
               <CalendarDays size={20} className="text-[#EA580C]" />
               <span className="text-sm font-bold text-[#1C1917] select-none tracking-tight">
                 Calendrier
               </span>
-            </div>
+            </Link>
             {NAV_ITEMS.map(({ path, label }) => (
               <Button
                 key={path}

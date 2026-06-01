@@ -1,0 +1,43 @@
+{
+  "eval_id": 1,
+  "eval_name": "listbymonth-procedure",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
+      "passed": true,
+      "evidence": "Response: 'File: src/integrations/trpc/router/calendarRouter.ts' stated explicitly for the procedure location."
+    },
+    {
+      "text": "Uses Prisma ORM (prisma.day.findMany or similar), not raw SQL or fetch",
+      "passed": true,
+      "evidence": "Response shows prisma.day.findMany with where/include/orderBy — correct Prisma ORM usage."
+    },
+    {
+      "text": "Uses Zod to validate the month and year inputs",
+      "passed": true,
+      "evidence": "Response: 'Input validated with Zod (z.object({ month: z.number(), year: z.number() }))'."
+    },
+    {
+      "text": "Queries through the day model to get rdv records (correct schema relationship)",
+      "passed": true,
+      "evidence": "Response uses prisma.day.findMany with include: { rdv: { orderBy: { start_hour: 'asc' } } } — correct day→rdv relation."
+    },
+    {
+      "text": "Does NOT require changes to router.ts (calendarRouter is already registered there)",
+      "passed": true,
+      "evidence": "Response: 'Procedure lives in the calendar sub-router (calendarRouter.ts), registered in router.ts' — no changes to router.ts needed."
+    },
+    {
+      "text": "Uses the single 'date' DateTime field with a date-range query (gte/lt), NOT integer month/year fields — matches the real Prisma schema (new in iteration-2 skill)",
+      "passed": true,
+      "evidence": "Response uses date: { gte: new Date(startMonth.format('YYYY-MM-DD')), lt: new Date(startNextMonth.format('YYYY-MM-DD')) } — correct single date field with range query."
+    },
+    {
+      "text": "Ideally notes that listByMonth already exists in calendarRouter.ts (since the skill now lists all procedures)",
+      "passed": true,
+      "evidence": "First line of response: 'The listByMonth procedure already exists in the codebase.' — directly triggered by the procedures table in the updated skill."
+    }
+  ],
+  "pass_rate": 1.0
+}

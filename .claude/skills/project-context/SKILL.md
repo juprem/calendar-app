@@ -66,6 +66,33 @@ Browser
 | `src/start.ts` | TanStack Start config + Clerk auth middleware |
 | `prisma/schema.prisma` | Database schema |
 
+### Component File Map (fast lookup)
+
+| Component | File |
+|---|---|
+| App shell + header nav | `src/components/Layout/Layout.tsx` |
+| Add RDV modal trigger | `src/components/Layout/AddRdv/AddRdv.tsx` |
+| Add contact modal trigger | `src/components/Layout/AddContact/AddContact.tsx` |
+| Daily calendar view | `src/components/DailyView/` |
+| Contacts page root | `src/components/Contacts/Contacts.tsx` |
+| Contact list sidebar | `src/components/Contacts/ContactList.tsx` |
+| Contact detail panel | `src/components/Contacts/ContactDetail.tsx` |
+| Contact avatar | `src/components/Contacts/ContactAvatar.tsx` |
+| Day navigator (prev/next) | `src/components/DailyView/DayNavigator.tsx` |
+
+### Route → Component map
+
+| URL | Route file | Component |
+|---|---|---|
+| `/` | `src/routes/index.tsx` | Redirects to `/journaliere` |
+| `/journaliere` | `src/routes/journaliere/index.tsx` | Daily view |
+| `/hebdomadaire` | `src/routes/hebdomadaire/index.tsx` | Weekly view |
+| `/mensuelle` | `src/routes/mensuelle/index.tsx` | Monthly view |
+| `/contacts` | `src/routes/contacts/index.tsx` | `Contacts` |
+| `/api/trpc/*` | `src/routes/api.trpc.$.tsx` | tRPC fetch handler |
+| `/forbidden` | `src/routes/forbidden/index.tsx` | Access denied |
+| `/sign-in` | `src/routes/sign-in/` | Clerk sign-in |
+
 ### Authentication
 
 - Provider: Clerk, wired in `src/routes/__root.tsx`
@@ -75,11 +102,23 @@ Browser
 
 ### tRPC conventions
 
-- Instance + context: `src/integrations/trpc/init.ts`
+- Instance + context: `src/integrations/trpc/init.ts` (uses SuperJSON transformer, no context)
 - React hooks entry point: `src/integrations/trpc/react.ts`
 - Root router: `src/integrations/trpc/router/router.ts` (merges sub-routers)
-- Sub-routers: `calendarRouter.ts` (listByDay, addRdv), `contactsRouter.ts` (listAll, addContact)
-- HTTP endpoint: `src/routes/api.trpc.$.tsx`
+- HTTP endpoint: `src/routes/api.trpc.$.tsx` — `createContext` must be `() => ({})`, never `createTRPCContext` from `@trpc/tanstack-react-query`
+- Client setup: `src/integrations/tanstack-query/root-provider.tsx` — uses `httpBatchStreamLink` + SuperJSON
+
+#### Current tRPC procedures
+
+| Router | Procedure | Input | Description |
+|---|---|---|---|
+| `calendar` | `listByDay` | `string` (ISO date) | Fetch day + its RDVs |
+| `calendar` | `listByWeek` | `{ startDay, startMonth, startYear }` | Fetch 7 days of RDVs |
+| `calendar` | `listByMonth` | `{ month, year }` | Fetch all days in month |
+| `calendar` | `addRdv` | `RdvCreateSchema` | Create a new RDV |
+| `contacts` | `listAll` | — | Fetch all contacts |
+| `contacts` | `addContact` | `CreateContactSchema` | Create a new contact |
+
 - **Convention**: add new procedures to the matching sub-router; create a new sub-router for new domains, then register it in `router.ts`
 
 ### State split
@@ -93,23 +132,27 @@ Browser
 
 ## Database Schema
 
-Three Prisma models in `prisma/schema.prisma` (PostgreSQL via Neon):
+Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output: `generated/prisma/`.
 
 **`day`** — a calendar date
-- `id` (PK, auto-increment), `day`, `month`, `year` (SmallInt)
-- Unique constraint on `(day, month, year)`, index on `(month, year)`
+- `id` (PK, auto-increment)
+- `date DateTime @unique @db.Date` — stored as a UTC date (`YYYY-MM-DDT00:00:00.000Z`)
 - Relation: one `day` → many `rdv`
 
 **`rdv`** — a single appointment
-- `id` (PK), `day_id` (FK → day), `start_hour`, `end_hour`, `name` (VarChar)
-- `rdv_type` (optional), `status` (optional)
+- `id` (PK), `day_id` (FK → day)
+- `start_hour`, `end_hour`, `name` (VarChar)
+- `rdv_type` (optional VarChar), `is_confirmed` (optional Boolean)
 - Index on `day_id`
 
 **`contact`** — a person
 - `id` (PK), `firstname`, `lastname` (VarChar)
-- `email`, `phone_number` (optional), `notes` (optional text)
+- `email`, `phone_number` (optional VarChar), `notes` (optional text)
+- Unique constraint on `(firstname, lastname)`
 
 After any schema change: `npx prisma db push`
+
+> **Note**: dates are stored as a single `date` field (not separate `day/month/year` integers). Always use `new Date('YYYY-MM-DDT00:00:00.000Z')` when querying by date.
 
 ---
 
@@ -118,8 +161,8 @@ After any schema change: `npx prisma db push`
 | Feature | Status | Key files |
 |---|---|---|
 | Daily calendar view | ✅ Done | `src/components/DailyView/` |
-| Weekly calendar view | 🔲 Planned | — |
-| Monthly calendar view | 🔲 Planned | — |
+| Weekly calendar view | 🔲 UI planned | Router procedure `listByWeek` exists in `calendarRouter.ts` |
+| Monthly calendar view | 🔲 UI planned | Router procedure `listByMonth` exists in `calendarRouter.ts` |
 | Create appointment (RDV) | ✅ Done | `src/components/Layout/AddRdv/`, `calendarRouter.ts` |
 | List appointments by day | ✅ Done | `calendarRouter.ts`, `calendarService.ts` |
 | Create contact | ✅ Done | `src/components/Layout/AddContact/`, `contactsRouter.ts` |
@@ -142,6 +185,7 @@ npx prisma studio     # browse the database locally
 ```
 
 - **Env vars**: `DATABASE_URL` (NeonDB), `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`
+- **Cloudflare secrets**: set via `wrangler secret put <VAR_NAME>` — never hardcode in source files
 - **Deploy config**: `wrangler.jsonc`
 - **DB config**: `prisma.config.ts`
 - **Build config**: `vite.config.ts`
@@ -158,4 +202,6 @@ When writing code for this project, follow these patterns:
 4. **Calling the API in a component** → always go through a service hook in `src/services/`, not directly via tRPC in the component
 5. **Input validation** → Zod schemas in `src/models/`, reused as tRPC input validators
 6. **Imports** → use `@/` or `#/` path alias instead of deep relative paths
-7. **Date operations** → use Day.js; store as separate `day/month/year` fields, not timestamps
+7. **Date operations** → use Day.js; store as a single `date` field (UTC midnight), not separate `day/month/year` integers
+8. **Navigation links** → use `<Link>` from `@tanstack/react-router` for anchor-style navigation; use `useNavigate` only for programmatic navigation inside event handlers
+9. **Styling** → Tailwind CSS utilities for layout/spacing; avoid raw hex strings — use Ant Design `ConfigProvider` tokens where possible

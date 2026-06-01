@@ -1,0 +1,43 @@
+{
+  "eval_id": 0,
+  "eval_name": "weekly-view-plan",
+  "run": "with_skill",
+  "expectations": [
+    {
+      "text": "Mentions the Zustand calendarStore and the WEEKLY mode value",
+      "passed": true,
+      "evidence": "Response lists 'src/store/calendarStore.ts — Zustand store: day (Dayjs) + setDay — shared across daily/weekly/monthly views' and describes the WEEKLY derivation logic."
+    },
+    {
+      "text": "References src/components/DailyView/ as the pattern/template to follow",
+      "passed": true,
+      "evidence": "Response lists all DailyView-parallel components in WeeklyView/ and implicitly uses DailyView as the architectural reference point throughout the comparison table."
+    },
+    {
+      "text": "Mentions Day.js for week-range date calculations",
+      "passed": true,
+      "evidence": "Response shows 'Monday computation: day.subtract(dow === 0 ? 6 : dow - 1, 'day')' and lists Day.js in the libraries table for date math."
+    },
+    {
+      "text": "Suggests creating the component under src/components/ (e.g. WeeklyView/)",
+      "passed": true,
+      "evidence": "Response explicitly lists all files under src/components/WeeklyView/ as already existing, identifying the correct path."
+    },
+    {
+      "text": "Recommends Ant Design for UI components",
+      "passed": true,
+      "evidence": "Libraries table: 'UI components | Ant Design 6.x | Spin for loading indicator'."
+    },
+    {
+      "text": "Notes that the listByWeek tRPC procedure already exists in calendarRouter.ts (new in iteration-2 skill)",
+      "passed": true,
+      "evidence": "Response explicitly states 'The weekly calendar view is already largely implemented' and lists listByWeek as Done in calendarRouter.ts."
+    },
+    {
+      "text": "References the correct route file src/routes/hebdomadaire/ or the /hebdomadaire URL (from the new route map)",
+      "passed": true,
+      "evidence": "Response: 'Route: src/routes/hebdomadaire/index.tsx | Done | Route at /hebdomadaire, protected by requireCalendarAccess()'."
+    }
+  ],
+  "pass_rate": 1.0
+}

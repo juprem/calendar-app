@@ -1,24 +1,20 @@
 import { Spin } from 'antd';
 import { MonthSelector } from '#/components/MonthlyView/MonthSelector.tsx';
 import { CalendarCell } from '#/components/MonthlyView/CalendarCell.tsx';
-import type { day as DayRecord, rdv } from '../../../generated/prisma/client.ts';
-import type { Dayjs } from 'dayjs';
+import type { rdv } from '../../../generated/prisma/client.ts';
+import { useGetMonthlyRdv } from '#/services/calendarService.ts';
+import { useCalendarStore } from '#/store/calendarStore.ts';
 import dayjs from 'dayjs';
-
-type DayWithRdv = DayRecord & { rdv: rdv[] };
-
-interface MonthlyViewProps {
-  days: DayWithRdv[];
-  currentDay: Dayjs;
-  isLoading?: boolean;
-}
 
 const WEEKDAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-export function MonthlyView({ days, currentDay, isLoading = false }: MonthlyViewProps) {
+export function MonthlyView() {
   const today = dayjs();
-  const firstOfMonth = currentDay.startOf('month');
-  const daysInMonth = currentDay.daysInMonth();
+  const day = useCalendarStore((state) => state.day);
+  const { data: days = [], isLoading } = useGetMonthlyRdv(day.month() + 1, day.year());
+
+  const firstOfMonth = day.startOf('month');
+  const daysInMonth = day.daysInMonth();
 
   const firstWeekday = firstOfMonth.day();
   const leadingPad = firstWeekday === 0 ? 6 : firstWeekday - 1;
@@ -37,8 +33,8 @@ export function MonthlyView({ days, currentDay, isLoading = false }: MonthlyView
 
   const isToday = (dayNum: number) =>
     today.date() === dayNum &&
-    today.month() === currentDay.month() &&
-    today.year() === currentDay.year();
+    today.month() === day.month() &&
+    today.year() === day.year();
 
   return (
     <div className="flex flex-col gap-2 p-6">
