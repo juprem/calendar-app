@@ -1,79 +1,44 @@
-import z from 'zod';
 import { publicProcedure } from '../init';
-import { prisma } from '#/db.ts';
-import dayjs from 'dayjs';
-
-export const RdvCreateSchema = z.object({
-  date: z.string(),
-  name: z.string(),
-  start_hour: z.string(),
-  end_hour: z.string(),
-  rdv_type: z.string().optional(),
-  is_confirmed: z.boolean().optional(),
-});
-
-const toUTCDate = (isoDate: string) => new Date(`${isoDate}T00:00:00.000Z`);
+import { toUTCDate } from '#/utils/dateUtils.ts';
+import { getDayRdv, getWeekRdv, getMonthRdv, scheduleRdv, updateRdv, deleteRdv } from '#/server/calendarDomain.ts';
+import { RdvCreateSchema, UpdateRdvSchema } from '#/models/RdvModel.ts';
+import z from 'zod';
 
 export const calendarRouter = {
-  listByDay: publicProcedure.input(z.string()).query(async ({ input }) =>
-    await prisma.day.findFirst({
-      where: { date: toUTCDate(input) },
-      include: { rdv: true },
+  listByDay: publicProcedure.input(z.string()).query(({ input }) => getDayRdv(toUTCDate(input))),
+  listByWeek: publicProcedure
+    .input(
+      z.object({
+        startDay: z.number(),
+        startMonth: z.number().pipe(z.transform((month) => month + 1)),
+        startYear: z.number(),
+      }),
+    )
+    .query(({ input }) => getWeekRdv(input.startDay, input.startMonth, input.startYear)),
+  listByMonth: publicProcedure
+    .input(z.object({ month: z.number(), year: z.number() }))
+    .query(({ input }) => getMonthRdv(input.month, input.year)),
+  addRdv: publicProcedure.input(RdvCreateSchema).mutation(({ input }) =>
+    scheduleRdv(toUTCDate(input.date), {
+      start_hour: input.start_hour,
+      end_hour: input.end_hour,
+      name: input.name,
+      rdv_type: input.rdv_type ?? null,
+      is_confirmed: input.is_confirmed ?? null,
+      contact_id: input.contact_id ?? null,
+      additional_infos: input.additional_infos ?? null,
     }),
   ),
-  listByWeek: publicProcedure
-    .input(z.object({ startDay: z.number(), startMonth: z.number(), startYear: z.number() }))
-    .query(async ({ input }) => {
-      const start = dayjs()
-        .year(input.startYear)
-        .month(input.startMonth - 1)
-        .date(input.startDay);
-      return Promise.all(
-        Array.from({ length: 7 }, (_, i) => {
-          const d = start.add(i, 'day');
-          return prisma.day.findFirst({
-            where: { date: new Date(d.format('YYYY-MM-DD')) },
-            include: { rdv: true },
-          });
-        }),
-      );
+  updateRdv: publicProcedure.input(UpdateRdvSchema).mutation(async ({ input }) =>
+    await updateRdv(input.id, toUTCDate(input.date), {
+      start_hour: input.start_hour,
+      end_hour: input.end_hour,
+      name: input.name,
+      rdv_type: input.rdv_type ?? null,
+      is_confirmed: input.is_confirmed ?? null,
+      contact_id: input.contact_id ?? null,
+      additional_infos: input.additional_infos ?? null,
     }),
-  listByMonth: publicProcedure.input(z.object({ month: z.number(), year: z.number() })).query(async ({ input }) => {
-    const startMonth = dayjs()
-      .year(input.year)
-      .month(input.month - 1)
-      .date(1);
-    const startNextMonth = startMonth.add(1, 'month');
-
-    return prisma.day.findMany({
-      where: {
-        date: {
-          gte: new Date(startMonth.format('YYYY-MM-DD')),
-          lt: new Date(startNextMonth.format('YYYY-MM-DD')),
-        },
-      },
-      include: { rdv: { orderBy: { start_hour: 'asc' } } },
-      orderBy: { date: 'asc' },
-    });
-  }),
-  addRdv: publicProcedure.input(RdvCreateSchema).mutation(async ({ input }) => {
-    const date = toUTCDate(input.date);
-
-    let day = await prisma.day.findFirst({ where: { date } });
-
-    if (!day) {
-      day = await prisma.day.create({ data: { date } });
-    }
-
-    return prisma.rdv.create({
-      data: {
-        start_hour: input.start_hour,
-        end_hour: input.end_hour,
-        name: input.name,
-        day_id: day.id,
-        rdv_type: input.rdv_type ?? null,
-        is_confirmed: input.is_confirmed ?? null,
-      },
-    });
-  }),
+  ),
+  deleteRdv: publicProcedure.input(z.number()).mutation(({ input }) => deleteRdv(input)),
 };

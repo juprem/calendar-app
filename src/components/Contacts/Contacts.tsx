@@ -1,24 +1,26 @@
 import { useState } from 'react';
-import { Spin } from 'antd';
 import { useGetAllContacts } from '#/services/contactService.ts';
 import { ContactList } from '#/components/Contacts/ContactList.tsx';
 import { ContactDetail } from '#/components/Contacts/ContactDetail.tsx';
+import { ContactEditForm } from '#/components/Contacts/ContactEditForm.tsx';
+import { DataState } from '#/components/DataState.tsx';
 import { Users } from 'lucide-react';
 
 export function Contacts() {
-  const { data: contacts = [], isLoading } = useGetAllContacts();
+  const { data: contacts = [], isLoading, isError } = useGetAllContacts();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   const selectedContact = contacts.find((c) => c.id === selectedId) ?? null;
 
-  if (isLoading) {
-    return (
-      <div className="min-h-[400px] flex items-center justify-center">
-        <Spin size="large" />
-      </div>
-    );
-  }
+  const handleSelect = (id: number) => {
+    setSelectedId(id);
+    setIsEditing(false);
+  };
+
+  const showEditForm = selectedContact !== null && isEditing;
+  const showDetail = selectedContact !== null && !isEditing;
 
   return (
     <div className="flex h-full">
@@ -28,19 +30,29 @@ export function Contacts() {
           selectedId={selectedId}
           search={search}
           onSearchChange={setSearch}
-          onSelect={setSelectedId}
+          onSelect={handleSelect}
+          isLoading={isLoading}
+          isError={isError}
         />
       </div>
 
       <div className="flex-1 bg-white">
-        {selectedContact ? (
-          <ContactDetail contact={selectedContact} />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-[#78716C]">
-            <Users size={40} className="text-[#E7E5E4]" />
-            <p className="text-sm">Sélectionnez un contact</p>
-          </div>
-        )}
+        <DataState
+          isEmpty={!selectedContact}
+          emptyIcon={<Users size={40} className="text-[#E7E5E4]" />}
+          emptyText="Sélectionnez un contact"
+        >
+          {showEditForm && (
+            <ContactEditForm contact={selectedContact!} onCancel={() => setIsEditing(false)} />
+          )}
+          {showDetail && (
+            <ContactDetail
+              contact={selectedContact!}
+              onEdit={() => setIsEditing(true)}
+              onDelete={() => setSelectedId(null)}
+            />
+          )}
+        </DataState>
       </div>
     </div>
   );

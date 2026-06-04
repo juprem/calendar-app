@@ -1,52 +1,64 @@
-import { Spin } from 'antd';
+import { useState } from 'react';
+import dayjs from 'dayjs';
 import { MonthSelector } from '#/components/MonthlyView/MonthSelector.tsx';
 import { CalendarCell } from '#/components/MonthlyView/CalendarCell.tsx';
-import type { rdv } from '../../../generated/prisma/client.ts';
-import { useGetMonthlyRdv } from '#/services/calendarService.ts';
-import { useCalendarStore } from '#/store/calendarStore.ts';
-import dayjs from 'dayjs';
+import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
+import { RdvDayListModal } from '#/components/MonthlyView/RdvDayListModal.tsx';
+import type { MonthCell, RdvWithContact } from '#/models/CalendarModel.ts';
 
 const WEEKDAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
-export function MonthlyView() {
-  const today = dayjs();
-  const day = useCalendarStore((state) => state.day);
-  const { data: days = [], isLoading } = useGetMonthlyRdv(day.month() + 1, day.year());
+interface MonthlyViewProps {
+  cells: MonthCell[];
+  isToday: (dayNum: number) => boolean;
+  isLoading?: boolean;
+  year: number;
+  month: number;
+}
 
-  const firstOfMonth = day.startOf('month');
-  const daysInMonth = day.daysInMonth();
+interface SelectedRdv {
+  rdv: RdvWithContact;
+  isoDate: string;
+}
 
-  const firstWeekday = firstOfMonth.day();
-  const leadingPad = firstWeekday === 0 ? 6 : firstWeekday - 1;
-  const totalCells = Math.ceil((leadingPad + daysInMonth) / 7) * 7;
+interface OverflowSelection {
+  dayNum: number;
+  isoDate: string;
+  formattedDate: string;
+}
 
-  const rdvByDay = new Map<number, rdv[]>();
-  for (const d of days) {
-    rdvByDay.set(d.date.getUTCDate(), d.rdv);
-  }
+export function MonthlyView({ cells, isToday, isLoading = false, year, month }: MonthlyViewProps) {
+  const [selected, setSelected] = useState<SelectedRdv | null>(null);
+  const [overflowSel, setOverflowSel] = useState<OverflowSelection | null>(null);
 
-  const cells = Array.from({ length: totalCells }, (_, i) => {
-    const dayNum = i - leadingPad + 1;
-    if (dayNum < 1 || dayNum > daysInMonth) return null;
-    return { dayNum, rdvs: rdvByDay.get(dayNum) ?? [] };
-  });
+  const buildDate = (dayNum: number) =>
+    dayjs().year(year).month(month - 1).date(dayNum);
 
-  const isToday = (dayNum: number) =>
-    today.date() === dayNum &&
-    today.month() === day.month() &&
-    today.year() === day.year();
+  const handleRdvClick = (rdv: RdvWithContact, dayNum: number) => {
+    setSelected({ rdv, isoDate: buildDate(dayNum).format('YYYY-MM-DD') });
+  };
+
+  const handleOverflowClick = (_rdvs: RdvWithContact[], dayNum: number) => {
+    const date = buildDate(dayNum);
+    setOverflowSel({
+      dayNum,
+      isoDate: date.format('YYYY-MM-DD'),
+      formattedDate: date.format('dddd D MMMM YYYY'),
+    });
+  };
+
+  // Derive live rdvs from cells so the list stays fresh after cache updates
+  const overflowCell = overflowSel
+    ? cells.find((c) => c?.dayNum === overflowSel.dayNum)
+    : null;
+  const overflowRdvs = overflowCell?.rdvs ?? [];
 
   return (
-    <div className="flex flex-col gap-2 p-6">
-      <div className="flex items-center gap-3">
-        <div className="flex-1">
-          <MonthSelector />
-        </div>
-        {isLoading && <Spin size="small" />}
-      </div>
+    <div className="flex flex-col gap-2 px-6">
+      <MonthSelector isLoading={isLoading} />
 
       <div className="border border-[#E7E5E4] rounded-xl overflow-hidden">
-        <div className="grid grid-cols-7 bg-[#FFFBF5] border-b border-[#E7E5E4]">
+        <div className="grid grid-cols-7 bg-[#FFFBF5]">
           {WEEKDAY_HEADERS.map((label) => (
             <div
               key={label}
@@ -65,6 +77,8 @@ export function MonthlyView() {
                 dayNum={cell.dayNum}
                 rdvs={cell.rdvs}
                 isToday={isToday(cell.dayNum)}
+                onRdvClick={handleRdvClick}
+                onOverflowClick={handleOverflowClick}
               />
             ) : (
               <div key={`pad-${i}`} className="min-h-28 bg-[#FFFBF5]/60" />
@@ -72,6 +86,25 @@ export function MonthlyView() {
           )}
         </div>
       </div>
+
+      {selected && (
+        <RdvDetailModal
+          rdv={selected.rdv}
+          isoDate={selected.isoDate}
+          open={true}
+          onClose={() => setSelected(null)}
+        />
+      )}
+
+      {overflowSel && (
+        <RdvDayListModal
+          rdvs={overflowRdvs}
+          isoDate={overflowSel.isoDate}
+          formattedDate={overflowSel.formattedDate}
+          open={true}
+          onClose={() => setOverflowSel(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,17 +1,22 @@
+import { useState } from 'react';
 import dayjs from 'dayjs';
-import type { day as DayRecord, rdv } from '../../../generated/prisma/client.ts';
 import type { Dayjs } from 'dayjs';
 import { WeekSelector } from '#/components/WeeklyView/WeekSelector.tsx';
 import { WeekDayHeader } from '#/components/WeeklyView/WeekDayHeader.tsx';
 import { WeekTimeGrid } from '#/components/WeeklyView/WeekTimeGrid.tsx';
+import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
 import { DAY_NAMES } from '#/components/WeeklyView/weeklyViewConstants.ts';
-
-type DayWithRdv = (DayRecord & { rdv: rdv[] }) | null;
+import type { DayWithRdv, RdvWithContact } from '#/models/CalendarModel.ts';
 
 interface WeeklyViewProps {
   weekDays: DayWithRdv[];
   monday: Dayjs;
   isLoading?: boolean;
+}
+
+interface SelectedRdv {
+  rdv: RdvWithContact;
+  isoDate: string;
 }
 
 function isDateToday(date: Dayjs, today: Dayjs): boolean {
@@ -24,6 +29,7 @@ function isDateToday(date: Dayjs, today: Dayjs): boolean {
 
 export function WeeklyView({ weekDays, monday, isLoading = false }: WeeklyViewProps) {
   const today = dayjs();
+  const [selected, setSelected] = useState<SelectedRdv | null>(null);
   const checkIsToday = (date: Dayjs) => isDateToday(date, today);
 
   return (
@@ -31,7 +37,7 @@ export function WeeklyView({ weekDays, monday, isLoading = false }: WeeklyViewPr
       <WeekSelector isLoading={isLoading} />
 
       <div className="flex-1 flex flex-col min-h-0 border border-[#E7E5E4] rounded-xl overflow-hidden">
-        <div className="shrink-0 flex border-b border-[#E7E5E4] bg-[#FFFBF5]">
+        <div className="shrink-0 flex bg-[#FFFBF5]">
           <div className="w-14 shrink-0" />
           <div className="grid grid-cols-7 flex-1">
             {weekDays.map((_, i) => {
@@ -52,8 +58,18 @@ export function WeeklyView({ weekDays, monday, isLoading = false }: WeeklyViewPr
           weekDays={weekDays}
           monday={monday}
           isDateToday={checkIsToday}
+          onRdvClick={(rdv, isoDate) => setSelected({ rdv, isoDate })}
         />
       </div>
+
+      {selected && (
+        <RdvDetailModal
+          rdv={selected.rdv}
+          isoDate={selected.isoDate}
+          open={true}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }

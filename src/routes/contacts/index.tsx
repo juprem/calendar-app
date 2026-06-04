@@ -5,4 +5,9 @@ import { requireCalendarAccess } from '#/server/auth.ts';
 export const Route = createFileRoute('/contacts/')({
   component: Contacts,
   beforeLoad: async () => await requireCalendarAccess(),
+  loader: ({ context }) => {
+    context.queryClient.ensureQueryData(
+      context.trpc.contacts.listAll.queryOptions(),
+    );
+  },
 });

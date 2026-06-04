@@ -16,6 +16,7 @@ import 'dayjs/locale/fr';
 import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
 import frFR from 'antd/locale/fr_FR';
+import { Toaster } from 'sonner';
 import type { TRPCRouter } from '#/integrations/trpc/router/router.ts';
 
 dayjs.locale('fr');
@@ -74,6 +75,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             }}
           >
             <Layout>{children}</Layout>
+            <Toaster position="bottom-right" richColors />
             <TanStackDevtools
               config={{
                 position: 'bottom-right',

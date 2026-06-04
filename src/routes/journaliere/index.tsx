@@ -7,7 +7,7 @@ export const Route = createFileRoute('/journaliere/')({
   component: Journaliere,
   beforeLoad: async () => await requireCalendarAccess(),
   loader: ({ context }) => {
-    return context.queryClient.ensureQueryData(
+    context.queryClient.ensureQueryData(
       context.trpc.calendar.listByDay.queryOptions(dayjs().format('YYYY-MM-DD')),
     );
   },

@@ -1,3 +1,7 @@
+import dayjs from 'dayjs';
+import 'dayjs/locale/fr';
+dayjs.locale('fr');
+
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
 import { routeTree } from './routeTree.gen'
 

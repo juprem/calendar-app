@@ -23,6 +23,8 @@ model rdv {
   rdv_type         String?  @db.VarChar
   is_confirmed     Boolean?
   additional_infos String?  @db.VarChar
+  contact_id       Int?
+  contact          contact? @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
   day              day      @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
 
   @@index([day_id], map: "index_day")
@@ -35,10 +37,11 @@ model contact {
   email          String?  @db.VarChar
   phone_number   String?  @db.VarChar
   notes          String?
-  birth_date     DateTime? @db.Timestamp(6)
+  birth_date     DateTime @default(now()) @db.Timestamp(6)
   birth_location String?  @db.VarChar
   address        String?  @db.VarChar
   civility       String?  @db.VarChar
+  rdv            rdv[]
 
   @@unique([firstname, lastname], map: "fullname")
 }

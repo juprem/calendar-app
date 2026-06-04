@@ -1,6 +1,7 @@
 import { Spin } from 'antd';
 import { useCalendarStore } from '#/store/calendarStore.ts';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getMondayOf } from '#/utils/dateUtils.ts';
 
 interface WeekSelectorProps {
   isLoading?: boolean;
@@ -10,8 +11,7 @@ export function WeekSelector({ isLoading = false }: WeekSelectorProps) {
   const day = useCalendarStore((state) => state.day);
   const setDay = useCalendarStore((state) => state.setDay);
 
-  const dow = day.day();
-  const monday = day.subtract(dow === 0 ? 6 : dow - 1, 'day');
+  const monday = getMondayOf(day);
   const sunday = monday.add(6, 'day');
 
   const label =
@@ -20,7 +20,7 @@ export function WeekSelector({ isLoading = false }: WeekSelectorProps) {
       : `${monday.format('D MMMM')} — ${sunday.format('D MMMM YYYY')}`;
 
   return (
-    <div className="flex items-center justify-between py-3 px-2 border-b border-[#E7E5E4]">
+    <div className="flex items-center justify-between py-3 px-2">
       <button
         onClick={() => setDay(day.subtract(7, 'day'))}
         className="p-2 rounded-full hover:bg-[#FEF3C7] transition-colors cursor-pointer"

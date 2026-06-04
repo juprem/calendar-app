@@ -1,7 +1,12 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCalendarStore } from '#/store/calendarStore.ts';
+import { Spin } from 'antd';
 
-export function DayNavigator() {
+interface DayNavigatorProps {
+  isLoading: boolean;
+}
+
+export function DayNavigator({ isLoading }: DayNavigatorProps) {
   const day = useCalendarStore((state) => state.day);
   const setDay = useCalendarStore((state) => state.setDay);
 
@@ -13,9 +18,14 @@ export function DayNavigator() {
       >
         <ChevronLeft size={20} className="text-[#78716C]" />
       </button>
-      <div className="text-center">
+      <div className="relative text-center">
         <p className="text-sm text-[#78716C] capitalize">{day.format('dddd')}</p>
         <p className="text-2xl font-bold text-[#1C1917] capitalize">{day.format('D MMMM YYYY')}</p>
+        {isLoading && (
+          <div className="absolute top-1/2 -translate-y-1/2 left-[calc(100%+8px)]">
+            <Spin size="small" />
+          </div>
+        )}
       </div>
       <button
         onClick={() => setDay(day.add(1, 'day'))}

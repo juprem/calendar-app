@@ -1,7 +1,8 @@
 import { Button, DatePicker, Form, Input, Modal, Select, TimePicker } from 'antd';
-import TextArea from 'antd/es/input/TextArea';
 import { useAddRdv } from '#/services/calendarService.ts';
 import type { Dayjs } from 'dayjs';
+import { RDV_TYPE_OPTIONS, STATUT_OPTIONS } from '#/models/RdvModel.ts';
+import { ContactSelectField } from '#/components/Layout/AddRdv/ContactSelectField.tsx';
 
 interface AddRdvProps {
   open: boolean;
@@ -9,25 +10,15 @@ interface AddRdvProps {
 }
 
 interface CreateRdvFormValues {
+  contact_id?: number;
   name: string;
   day: Dayjs;
   start_time: Dayjs;
   end_time: Dayjs;
   rdv_type?: string;
   is_confirmed?: boolean;
+  additional_infos?: string;
 }
-
-const RDV_TYPE_OPTIONS = [
-  { value: 'Consultation', label: 'Consultation' },
-  { value: 'Suivi', label: 'Suivi' },
-  { value: 'Bilan', label: 'Bilan' },
-  { value: 'Urgence', label: 'Urgence' },
-];
-
-const STATUT_OPTIONS = [
-  { value: true, label: 'Confirmé' },
-  { value: false, label: 'En attente' },
-];
 
 export function AddRdv({ open, onClose }: AddRdvProps) {
   const { mutate: addRdv, isPending } = useAddRdv();
@@ -44,6 +35,8 @@ export function AddRdv({ open, onClose }: AddRdvProps) {
         end_hour: values.end_time.format('HH:mm'),
         rdv_type: values.rdv_type,
         is_confirmed: values.is_confirmed,
+        contact_id: values.contact_id ?? null,
+        additional_infos: values.additional_infos || null,
       },
       {
         onSuccess: () => {
@@ -58,15 +51,22 @@ export function AddRdv({ open, onClose }: AddRdvProps) {
     <Modal
       title="Nouveau Rendez-vous"
       open={open}
+      centered
       footer={null}
+      styles={{
+        container: { maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+        body: { overflowY: 'auto', flex: '1 1 auto' },
+      }}
       onCancel={() => {
         form.resetFields();
         onClose();
       }}
     >
       <Form form={form} layout="vertical" onFinish={onFinish} className="mt-4">
-        <Form.Item label="Nom du patient" name="name" rules={[{ required: true }]}>
-          <Input placeholder="Nom du patient" />
+        <ContactSelectField onContactSelect={(name) => form.setFieldValue('name', name)} />
+
+        <Form.Item label="Nom" name="name" rules={[{ required: true }]}>
+          <Input placeholder="Nom du rendez-vous" />
         </Form.Item>
 
         <Form.Item label="Date" name="day" rules={[{ required: true }]}>
@@ -102,8 +102,17 @@ export function AddRdv({ open, onClose }: AddRdvProps) {
           <Select placeholder="Confirmé" options={STATUT_OPTIONS} allowClear />
         </Form.Item>
 
+        <Form.Item label="Informations complémentaires" name="additional_infos">
+          <Input.TextArea rows={2} placeholder="Notes, précautions, contexte..." />
+        </Form.Item>
+
         <div className="flex justify-end gap-2 mt-2">
-          <Button onClick={() => { form.resetFields(); onClose(); }}>
+          <Button
+            onClick={() => {
+              form.resetFields();
+              onClose();
+            }}
+          >
             Annuler
           </Button>
           <Button type="primary" htmlType="submit" loading={isPending}>
