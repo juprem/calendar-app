@@ -1,6 +1,7 @@
 import { Select } from 'antd';
 import { useGetAllContacts } from '#/services/contactService.ts';
 import { useCalendarStore } from '#/store/calendarStore.ts';
+import { formatContactName } from '#/utils/contactUtils.ts';
 
 export function CalendarFilterBar() {
   const { data: contacts = [] } = useGetAllContacts();
@@ -9,7 +10,7 @@ export function CalendarFilterBar() {
 
   const options = contacts.map((c) => ({
     value: c.id,
-    label: `${c.civility ? c.civility + ' ' : ''}${c.firstname} ${c.lastname}`,
+    label: formatContactName(c),
   }));
 
   return (

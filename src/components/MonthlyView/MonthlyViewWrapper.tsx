@@ -4,7 +4,7 @@ import { useGetMonthlyRdv } from '#/services/calendarService.ts';
 import { useCalendarStore } from '#/store/calendarStore.ts';
 import { MonthlyView } from '#/components/MonthlyView/MonthlyView.tsx';
 import type { MonthCell } from '#/models/CalendarModel.ts';
-import { DataState } from '#/components/DataState.tsx';
+import { DataState } from '#/components/DataState/DataState.tsx';
 
 export function MonthlyViewWrapper() {
   const today = dayjs();

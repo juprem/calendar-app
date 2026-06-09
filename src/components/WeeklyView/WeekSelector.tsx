@@ -22,6 +22,7 @@ export function WeekSelector({ isLoading = false }: WeekSelectorProps) {
   return (
     <div className="flex items-center justify-between py-3 px-2">
       <button
+        type="button"
         onClick={() => setDay(day.subtract(7, 'day'))}
         className="p-2 rounded-full hover:bg-[#FEF3C7] transition-colors cursor-pointer"
       >
@@ -32,6 +33,7 @@ export function WeekSelector({ isLoading = false }: WeekSelectorProps) {
         {isLoading && <Spin size="small" />}
       </div>
       <button
+        type="button"
         onClick={() => setDay(day.add(7, 'day'))}
         className="p-2 rounded-full hover:bg-[#FEF3C7] transition-colors cursor-pointer"
       >

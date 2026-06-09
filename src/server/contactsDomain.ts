@@ -2,7 +2,11 @@ import { prisma } from '#/db.ts';
 import type { CreateContact, UpdateContact } from '#/models/ContactModel.ts';
 
 export async function getAllContacts() {
-  return prisma.contact.findMany();
+  return prisma.contact.findMany({
+    orderBy: {
+      'lastname': 'asc',
+    },
+  });
 }
 
 export function createContact(data: CreateContact) {
@@ -15,6 +19,13 @@ export function updateContact(id: number, data: Omit<UpdateContact, 'id'>) {
 
 export function deleteContact(id: number) {
   return prisma.contact.delete({ where: { id } });
+}
+
+export function bulkCreateContacts(contacts: CreateContact[]) {
+  return prisma.contact.createMany({
+    data: contacts,
+    skipDuplicates: true,
+  });
 }
 
 export function getContactRdv(contactId: number) {

@@ -1,0 +1,11 @@
+{
+  "plugins": ["react", "unicorn", "eslint"],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react/no-array-index-key": "warn",
+    "unicorn/no-array-sort": "warn",
+    "unicorn/no-array-reverse": "warn",
+    "unicorn/consistent-function-scoping": "warn",
+    "oxc/no-map-spread": "warn"
+  }
+}

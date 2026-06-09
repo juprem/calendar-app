@@ -11,3 +11,6 @@ export type MonthCell = { dayNum: number; rdvs: RdvWithContact[] } | null;
 
 /** An RDV with its day date and linked contact — used in the contact's RDV list. */
 export type RdvWithDay = rdv & { day: { date: Date }; contact: contact | null };
+
+/** UI state for a selected RDV with its date context — shared by weekly and monthly views. */
+export type SelectedRdv = { rdv: RdvWithContact; isoDate: string };

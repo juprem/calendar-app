@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
 import { Button, DatePicker, Form, Input, Popconfirm, Select, TimePicker } from 'antd';
 import { Trash2 } from 'lucide-react';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { useDeleteRdv, useUpdateRdv } from '#/services/calendarService.ts';
-import { RDV_TYPE_OPTIONS, STATUT_OPTIONS } from '#/models/RdvModel.ts';
+import { RDV_TYPE_OPTIONS, RDV_TYPE_VALUES, STATUT_OPTIONS } from '#/models/RdvModel.ts';
+import type { RdvFormValues } from '#/models/RdvModel.ts';
 import type { RdvWithContact } from '#/models/CalendarModel.ts';
 import { getHourAndMinute } from '#/utils/timeUtils.ts';
 import { ContactSelectField } from '#/components/Layout/AddRdv/ContactSelectField.tsx';
@@ -15,42 +15,27 @@ interface RdvEditFormProps {
   onCancel: () => void;
 }
 
-interface EditRdvFormValues {
-  contact_id?: number;
-  name: string;
-  day: Dayjs;
-  start_time: Dayjs;
-  end_time: Dayjs;
-  rdv_type?: string;
-  is_confirmed?: boolean;
-  additional_infos?: string;
-}
 
 export function RdvEditForm({ rdv, isoDate, onSuccess, onCancel }: RdvEditFormProps) {
   const { mutate: updateRdv, isPending: isUpdating } = useUpdateRdv();
   const { mutate: deleteRdv, isPending: isDeleting } = useDeleteRdv(isoDate);
-  const [form] = Form.useForm<EditRdvFormValues>();
+  const [form] = Form.useForm<RdvFormValues>();
 
   const [startH, startM] = getHourAndMinute(rdv.start_hour);
   const [endH, endM] = getHourAndMinute(rdv.end_hour);
 
-  const initialValues: EditRdvFormValues = {
+  const initialValues: RdvFormValues = {
     contact_id: rdv.contact_id ?? undefined,
     name: rdv.name,
     day: dayjs(isoDate, 'YYYY-MM-DD'),
     start_time: dayjs().hour(startH).minute(startM).second(0),
     end_time: dayjs().hour(endH).minute(endM).second(0),
-    rdv_type: rdv.rdv_type ?? undefined,
+    rdv_type: RDV_TYPE_VALUES.find((t) => t === rdv.rdv_type),
     is_confirmed: rdv.is_confirmed ?? undefined,
     additional_infos: rdv.additional_infos ?? undefined,
   };
 
-  useEffect(() => {
-    form.setFieldsValue(initialValues);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rdv.id, isoDate]);
-
-  const onFinish = (values: EditRdvFormValues) => {
+  const onFinish = (values: RdvFormValues) => {
     updateRdv(
       {
         id: rdv.id,
@@ -68,7 +53,7 @@ export function RdvEditForm({ rdv, isoDate, onSuccess, onCancel }: RdvEditFormPr
   };
 
   return (
-    <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onFinish} className="mt-4">
+    <Form key={`${rdv.id}-${isoDate}`} form={form} layout="vertical" initialValues={initialValues} onFinish={onFinish} className="mt-4">
       <ContactSelectField onContactSelect={(name) => form.setFieldValue('name', name)} />
 
       <Form.Item label="Nom" name="name" rules={[{ required: true }]}>

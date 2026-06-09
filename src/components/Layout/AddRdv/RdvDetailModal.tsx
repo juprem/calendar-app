@@ -6,6 +6,7 @@ import type { RdvWithContact } from '#/models/CalendarModel.ts';
 import { getRdvTypeStyle } from '#/models/RdvModel.ts';
 import { useDeleteRdv } from '#/services/calendarService.ts';
 import { RdvEditForm } from '#/components/Layout/AddRdv/RdvEditForm.tsx';
+import { formatContactName } from '#/utils/contactUtils.ts';
 
 interface RdvDetailModalProps {
   rdv: RdvWithContact;
@@ -19,9 +20,7 @@ export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalPr
   const { mutate: deleteRdv, isPending: isDeleting } = useDeleteRdv(isoDate);
   const typeStyle = getRdvTypeStyle(rdv.rdv_type);
 
-  const contactLabel = rdv.contact
-    ? `${rdv.contact.civility ? rdv.contact.civility + ' ' : ''}${rdv.contact.firstname} ${rdv.contact.lastname}`
-    : null;
+  const contactLabel = rdv.contact ? formatContactName(rdv.contact) : null;
 
   return (
     <Modal

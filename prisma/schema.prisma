@@ -30,18 +30,28 @@ model rdv {
   @@index([day_id], map: "index_day")
 }
 
+model general_practitioner {
+  id        Int       @id @default(autoincrement())
+  firstname String?   @db.VarChar
+  lastname  String    @db.VarChar
+  address   String?   @db.VarChar
+  contact   contact[]
+}
+
 model contact {
-  id             Int      @id @default(autoincrement())
-  firstname      String   @db.VarChar
-  lastname       String   @db.VarChar
-  email          String?  @db.VarChar
-  phone_number   String?  @db.VarChar
-  notes          String?
-  birth_date     DateTime @default(now()) @db.Timestamp(6)
-  birth_location String?  @db.VarChar
-  address        String?  @db.VarChar
-  civility       String?  @db.VarChar
-  rdv            rdv[]
+  id                      Int                   @id @default(autoincrement())
+  firstname               String                @db.VarChar
+  lastname                String                @db.VarChar
+  email                   String?               @db.VarChar
+  phone_number            String?               @db.VarChar
+  notes                   String?
+  birth_date              DateTime              @default(now()) @db.Timestamp(6)
+  birth_location          String?               @db.VarChar
+  address                 String?               @db.VarChar
+  civility                String?               @db.VarChar
+  general_practitioner_id Int?
+  general_practitioner    general_practitioner? @relation(fields: [general_practitioner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  rdv                     rdv[]
 
   @@unique([firstname, lastname], map: "fullname")
 }

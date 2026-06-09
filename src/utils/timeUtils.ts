@@ -1,6 +1,13 @@
 import dayjs from 'dayjs';
 import type { rdv } from '../../generated/prisma/client.ts';
 
+/** Convert a total-minutes value to a zero-padded "HH:mm" string. */
+export function minutesToHHmm(totalMinutes: number): string {
+  const h = Math.floor(totalMinutes / 60);
+  const m = totalMinutes % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 /** Parse a "HH:mm" string into a [hour, minute] tuple. */
 export const getHourAndMinute = (time: string) => {
   const [hour, minute] = time.split(':').map(Number);

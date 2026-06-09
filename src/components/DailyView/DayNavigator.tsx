@@ -13,6 +13,7 @@ export function DayNavigator({ isLoading }: DayNavigatorProps) {
   return (
     <div className="flex items-center justify-between py-4 px-2 border-b border-[#E7E5E4] mb-6">
       <button
+        type="button"
         onClick={() => setDay(day.subtract(1, 'day'))}
         className="p-2 rounded-full hover:bg-[#FEF3C7] transition-colors cursor-pointer"
       >
@@ -28,6 +29,7 @@ export function DayNavigator({ isLoading }: DayNavigatorProps) {
         )}
       </div>
       <button
+        type="button"
         onClick={() => setDay(day.add(1, 'day'))}
         className="p-2 rounded-full hover:bg-[#FEF3C7] transition-colors cursor-pointer"
       >

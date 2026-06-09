@@ -1,20 +1,18 @@
 import type { RdvWithContact } from '#/models/CalendarModel.ts';
-import { getRdvTypeStyle } from '#/models/RdvModel.ts';
-import { useCalendarStore } from '#/store/calendarStore.ts';
-import { RdvStatusIcon } from '#/components/RdvStatusIcon.tsx';
+import { CalendarRdvItem } from '#/components/MonthlyView/CalendarRdvItem.tsx';
+import { CellOverflow } from '#/components/MonthlyView/CellOverflow.tsx';
 
 interface CalendarCellProps {
   dayNum: number;
+  isoDate: string;
   rdvs: RdvWithContact[];
   isToday: boolean;
   onRdvClick: (rdv: RdvWithContact, dayNum: number) => void;
-  onOverflowClick: (rdvs: RdvWithContact[], dayNum: number) => void;
 }
 
 const MAX_VISIBLE = 3;
 
-export function CalendarCell({ dayNum, rdvs, isToday, onRdvClick, onOverflowClick }: CalendarCellProps) {
-  const contactFilter = useCalendarStore((s) => s.contactFilter);
+export function CalendarCell({ dayNum, isoDate, rdvs, isToday, onRdvClick }: CalendarCellProps) {
   const visible = rdvs.slice(0, MAX_VISIBLE);
   const overflow = rdvs.length - visible.length;
 
@@ -31,35 +29,12 @@ export function CalendarCell({ dayNum, rdvs, isToday, onRdvClick, onOverflowClic
       </div>
 
       <div className="space-y-0.5">
-        {visible.map((rdv) => {
-          const isDimmed = contactFilter !== null && rdv.contact_id !== contactFilter;
-          const contactName = rdv.contact
-            ? `${rdv.contact.firstname} ${rdv.contact.lastname}`
-            : null;
-          const typeStyle = getRdvTypeStyle(rdv.rdv_type);
-          return (
-            <button
-              key={rdv.id}
-              type="button"
-              onClick={() => onRdvClick(rdv, dayNum)}
-              title={`${rdv.start_hour} – ${rdv.end_hour}  ${rdv.name}${rdv.additional_infos ? ` · ${rdv.additional_infos}` : ''}`}
-              className={`w-full text-left text-xs rounded px-1 py-0.5 transition-opacity cursor-pointer flex items-center gap-1 ${typeStyle.block} ${isDimmed ? 'opacity-20 pointer-events-none' : ''}`}
-            >
-              <span className="font-semibold shrink-0">{rdv.start_hour}</span>
-              <span className="flex-1 truncate">{contactName ?? rdv.name}</span>
-              <RdvStatusIcon isConfirmed={rdv.is_confirmed} size={10} variant="onBlock" onBlockIconClass={typeStyle.blockIcon} />
-            </button>
-          );
-        })}
+        {visible.map((rdv) => (
+          <CalendarRdvItem key={rdv.id} rdv={rdv} dayNum={dayNum} onRdvClick={onRdvClick} />
+        ))}
 
         {overflow > 0 && (
-          <button
-            type="button"
-            onClick={() => onOverflowClick(rdvs, dayNum)}
-            className="text-xs text-[#92400E] pl-1 hover:underline cursor-pointer"
-          >
-            +{overflow} autre{overflow > 1 ? 's' : ''}
-          </button>
+          <CellOverflow rdvs={rdvs} isoDate={isoDate} overflow={overflow} />
         )}
       </div>
     </div>

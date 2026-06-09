@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useGetAllContacts } from '#/services/contactService.ts';
-import { ContactList } from '#/components/Contacts/ContactList.tsx';
-import { ContactDetail } from '#/components/Contacts/ContactDetail.tsx';
-import { ContactEditForm } from '#/components/Contacts/ContactEditForm.tsx';
-import { DataState } from '#/components/DataState.tsx';
+import { ContactList } from '#/components/Contacts/ContactList/ContactList.tsx';
+import { ContactDetail } from '#/components/Contacts/ContactDetail/ContactDetail.tsx';
+import { ContactEditForm } from '#/components/Contacts/ContactDetail/ContactEdit/ContactEditForm.tsx';
 import { Users } from 'lucide-react';
+import { DataState } from '#/components/DataState/DataState.tsx';
 
 export function Contacts() {
   const { data: contacts = [], isLoading, isError } = useGetAllContacts();

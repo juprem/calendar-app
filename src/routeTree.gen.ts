@@ -9,16 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignInIndexRouteImport } from './routes/sign-in/index'
-import { Route as MensuelleIndexRouteImport } from './routes/mensuelle/index'
-import { Route as JournaliereIndexRouteImport } from './routes/journaliere/index'
-import { Route as HebdomadaireIndexRouteImport } from './routes/hebdomadaire/index'
 import { Route as ForbiddenIndexRouteImport } from './routes/forbidden/index'
-import { Route as ContactsIndexRouteImport } from './routes/contacts/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in/$'
+import { Route as ProtectedMensuelleIndexRouteImport } from './routes/_protected/mensuelle/index'
+import { Route as ProtectedJournaliereIndexRouteImport } from './routes/_protected/journaliere/index'
+import { Route as ProtectedHebdomadaireIndexRouteImport } from './routes/_protected/hebdomadaire/index'
+import { Route as ProtectedContactsIndexRouteImport } from './routes/_protected/contacts/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 
+const ProtectedRoute = ProtectedRouteImport.update({
+  id: '/_protected',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -29,35 +34,37 @@ const SignInIndexRoute = SignInIndexRouteImport.update({
   path: '/sign-in/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MensuelleIndexRoute = MensuelleIndexRouteImport.update({
-  id: '/mensuelle/',
-  path: '/mensuelle/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JournaliereIndexRoute = JournaliereIndexRouteImport.update({
-  id: '/journaliere/',
-  path: '/journaliere/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HebdomadaireIndexRoute = HebdomadaireIndexRouteImport.update({
-  id: '/hebdomadaire/',
-  path: '/hebdomadaire/',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ForbiddenIndexRoute = ForbiddenIndexRouteImport.update({
   id: '/forbidden/',
   path: '/forbidden/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactsIndexRoute = ContactsIndexRouteImport.update({
-  id: '/contacts/',
-  path: '/contacts/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInSplatRoute = SignInSplatRouteImport.update({
   id: '/sign-in/$',
   path: '/sign-in/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedMensuelleIndexRoute = ProtectedMensuelleIndexRouteImport.update({
+  id: '/mensuelle/',
+  path: '/mensuelle/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedJournaliereIndexRoute =
+  ProtectedJournaliereIndexRouteImport.update({
+    id: '/journaliere/',
+    path: '/journaliere/',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedHebdomadaireIndexRoute =
+  ProtectedHebdomadaireIndexRouteImport.update({
+    id: '/hebdomadaire/',
+    path: '/hebdomadaire/',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedContactsIndexRoute = ProtectedContactsIndexRouteImport.update({
+  id: '/contacts/',
+  path: '/contacts/',
+  getParentRoute: () => ProtectedRoute,
 } as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
@@ -68,87 +75,93 @@ const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign-in/$': typeof SignInSplatRoute
-  '/contacts/': typeof ContactsIndexRoute
   '/forbidden/': typeof ForbiddenIndexRoute
-  '/hebdomadaire/': typeof HebdomadaireIndexRoute
-  '/journaliere/': typeof JournaliereIndexRoute
-  '/mensuelle/': typeof MensuelleIndexRoute
   '/sign-in/': typeof SignInIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/contacts/': typeof ProtectedContactsIndexRoute
+  '/hebdomadaire/': typeof ProtectedHebdomadaireIndexRoute
+  '/journaliere/': typeof ProtectedJournaliereIndexRoute
+  '/mensuelle/': typeof ProtectedMensuelleIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in/$': typeof SignInSplatRoute
-  '/contacts': typeof ContactsIndexRoute
   '/forbidden': typeof ForbiddenIndexRoute
-  '/hebdomadaire': typeof HebdomadaireIndexRoute
-  '/journaliere': typeof JournaliereIndexRoute
-  '/mensuelle': typeof MensuelleIndexRoute
   '/sign-in': typeof SignInIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/contacts': typeof ProtectedContactsIndexRoute
+  '/hebdomadaire': typeof ProtectedHebdomadaireIndexRoute
+  '/journaliere': typeof ProtectedJournaliereIndexRoute
+  '/mensuelle': typeof ProtectedMensuelleIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_protected': typeof ProtectedRouteWithChildren
   '/sign-in/$': typeof SignInSplatRoute
-  '/contacts/': typeof ContactsIndexRoute
   '/forbidden/': typeof ForbiddenIndexRoute
-  '/hebdomadaire/': typeof HebdomadaireIndexRoute
-  '/journaliere/': typeof JournaliereIndexRoute
-  '/mensuelle/': typeof MensuelleIndexRoute
   '/sign-in/': typeof SignInIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/_protected/contacts/': typeof ProtectedContactsIndexRoute
+  '/_protected/hebdomadaire/': typeof ProtectedHebdomadaireIndexRoute
+  '/_protected/journaliere/': typeof ProtectedJournaliereIndexRoute
+  '/_protected/mensuelle/': typeof ProtectedMensuelleIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/sign-in/$'
-    | '/contacts/'
     | '/forbidden/'
+    | '/sign-in/'
+    | '/api/trpc/$'
+    | '/contacts/'
     | '/hebdomadaire/'
     | '/journaliere/'
     | '/mensuelle/'
-    | '/sign-in/'
-    | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/sign-in/$'
-    | '/contacts'
     | '/forbidden'
+    | '/sign-in'
+    | '/api/trpc/$'
+    | '/contacts'
     | '/hebdomadaire'
     | '/journaliere'
     | '/mensuelle'
-    | '/sign-in'
-    | '/api/trpc/$'
   id:
     | '__root__'
     | '/'
+    | '/_protected'
     | '/sign-in/$'
-    | '/contacts/'
     | '/forbidden/'
-    | '/hebdomadaire/'
-    | '/journaliere/'
-    | '/mensuelle/'
     | '/sign-in/'
     | '/api/trpc/$'
+    | '/_protected/contacts/'
+    | '/_protected/hebdomadaire/'
+    | '/_protected/journaliere/'
+    | '/_protected/mensuelle/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProtectedRoute: typeof ProtectedRouteWithChildren
   SignInSplatRoute: typeof SignInSplatRoute
-  ContactsIndexRoute: typeof ContactsIndexRoute
   ForbiddenIndexRoute: typeof ForbiddenIndexRoute
-  HebdomadaireIndexRoute: typeof HebdomadaireIndexRoute
-  JournaliereIndexRoute: typeof JournaliereIndexRoute
-  MensuelleIndexRoute: typeof MensuelleIndexRoute
   SignInIndexRoute: typeof SignInIndexRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -163,39 +176,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mensuelle/': {
-      id: '/mensuelle/'
-      path: '/mensuelle'
-      fullPath: '/mensuelle/'
-      preLoaderRoute: typeof MensuelleIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/journaliere/': {
-      id: '/journaliere/'
-      path: '/journaliere'
-      fullPath: '/journaliere/'
-      preLoaderRoute: typeof JournaliereIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hebdomadaire/': {
-      id: '/hebdomadaire/'
-      path: '/hebdomadaire'
-      fullPath: '/hebdomadaire/'
-      preLoaderRoute: typeof HebdomadaireIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/forbidden/': {
       id: '/forbidden/'
       path: '/forbidden'
       fullPath: '/forbidden/'
       preLoaderRoute: typeof ForbiddenIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacts/': {
-      id: '/contacts/'
-      path: '/contacts'
-      fullPath: '/contacts/'
-      preLoaderRoute: typeof ContactsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in/$': {
@@ -204,6 +189,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/sign-in/$'
       preLoaderRoute: typeof SignInSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_protected/mensuelle/': {
+      id: '/_protected/mensuelle/'
+      path: '/mensuelle'
+      fullPath: '/mensuelle/'
+      preLoaderRoute: typeof ProtectedMensuelleIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/journaliere/': {
+      id: '/_protected/journaliere/'
+      path: '/journaliere'
+      fullPath: '/journaliere/'
+      preLoaderRoute: typeof ProtectedJournaliereIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/hebdomadaire/': {
+      id: '/_protected/hebdomadaire/'
+      path: '/hebdomadaire'
+      fullPath: '/hebdomadaire/'
+      preLoaderRoute: typeof ProtectedHebdomadaireIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/contacts/': {
+      id: '/_protected/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof ProtectedContactsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
     }
     '/api/trpc/$': {
       id: '/api/trpc/$'
@@ -215,14 +228,29 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProtectedRouteChildren {
+  ProtectedContactsIndexRoute: typeof ProtectedContactsIndexRoute
+  ProtectedHebdomadaireIndexRoute: typeof ProtectedHebdomadaireIndexRoute
+  ProtectedJournaliereIndexRoute: typeof ProtectedJournaliereIndexRoute
+  ProtectedMensuelleIndexRoute: typeof ProtectedMensuelleIndexRoute
+}
+
+const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedContactsIndexRoute: ProtectedContactsIndexRoute,
+  ProtectedHebdomadaireIndexRoute: ProtectedHebdomadaireIndexRoute,
+  ProtectedJournaliereIndexRoute: ProtectedJournaliereIndexRoute,
+  ProtectedMensuelleIndexRoute: ProtectedMensuelleIndexRoute,
+}
+
+const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
+  ProtectedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProtectedRoute: ProtectedRouteWithChildren,
   SignInSplatRoute: SignInSplatRoute,
-  ContactsIndexRoute: ContactsIndexRoute,
   ForbiddenIndexRoute: ForbiddenIndexRoute,
-  HebdomadaireIndexRoute: HebdomadaireIndexRoute,
-  JournaliereIndexRoute: JournaliereIndexRoute,
-  MensuelleIndexRoute: MensuelleIndexRoute,
   SignInIndexRoute: SignInIndexRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
 }

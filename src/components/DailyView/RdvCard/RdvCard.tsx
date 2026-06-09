@@ -1,28 +1,31 @@
 import { Tooltip } from 'antd';
-import { Clock, User } from 'lucide-react';
+import { Calendar, Clock, User } from 'lucide-react';
 import type { RdvWithContact } from '#/models/CalendarModel.ts';
 import { getRdvTypeStyle } from '#/models/RdvModel.ts';
+import { formatContactName } from '#/utils/contactUtils.ts';
 import { useCalendarStore } from '#/store/calendarStore.ts';
 import { RdvStatusIcon } from '#/components/RdvStatusIcon.tsx';
+import dayjs from 'dayjs';
 
 interface RdvCardProps {
   rdv: RdvWithContact;
+  displayDate?: boolean;
   onClick?: () => void;
 }
 
-export function RdvCard({ rdv, onClick }: RdvCardProps) {
-  const { start_hour, end_hour, name, rdv_type, is_confirmed, contact, additional_infos } = rdv;
+export function RdvCard({ rdv, displayDate = false, onClick }: RdvCardProps) {
+  const { start_hour, end_hour, name, rdv_type, is_confirmed, contact, additional_infos, day } = rdv;
   const contactFilter = useCalendarStore((s) => s.contactFilter);
   const typeStyle = getRdvTypeStyle(rdv_type);
   const isDimmed = contactFilter !== null && rdv.contact_id !== contactFilter;
 
-  const contactLabel = contact
-    ? `${contact.civility ? contact.civility + ' ' : ''}${contact.firstname} ${contact.lastname}`
-    : null;
+  const contactLabel = contact ? formatContactName(contact) : null;
 
   return (
     <Tooltip title={additional_infos || undefined} placement="top">
       <div
+        tabIndex={0}
+        role="button"
         onClick={onClick}
         className={`flex items-center bg-white rounded-xl border border-[#E7E5E4] px-4 py-3 mb-3 hover:border-[#92400E]/30 hover:shadow-sm transition-all cursor-pointer ${isDimmed ? 'opacity-30 pointer-events-none' : ''}`}
       >
@@ -33,6 +36,13 @@ export function RdvCard({ rdv, onClick }: RdvCardProps) {
             <p className="text-xs text-[#78716C] leading-tight">{end_hour}</p>
           </div>
         </div>
+
+        {displayDate && (<div className="flex items-center gap-2 w-20 shrink-0">
+          <Calendar size={14} className="text-[#78716C] shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-[#1C1917] leading-tight">{dayjs(day.datetime).format("DD/MM")}</p>
+          </div>
+        </div>)}
 
         <div className="w-px h-8 bg-[#E7E5E4] mx-4 shrink-0" />
 

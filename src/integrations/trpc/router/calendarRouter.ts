@@ -1,12 +1,13 @@
-import { publicProcedure } from '../init';
+import { TRPCError } from '@trpc/server';
+import { protectedProcedure } from '../init';
 import { toUTCDate } from '#/utils/dateUtils.ts';
-import { getDayRdv, getWeekRdv, getMonthRdv, scheduleRdv, updateRdv, deleteRdv } from '#/server/calendarDomain.ts';
+import { getDayRdv, getWeekRdv, getMonthRdv, scheduleRdv, updateRdv, deleteRdv, RdvConflictError } from '#/server/calendarDomain.ts';
 import { RdvCreateSchema, UpdateRdvSchema } from '#/models/RdvModel.ts';
 import z from 'zod';
 
 export const calendarRouter = {
-  listByDay: publicProcedure.input(z.string()).query(({ input }) => getDayRdv(toUTCDate(input))),
-  listByWeek: publicProcedure
+  listByDay: protectedProcedure.input(z.string()).query(({ input }) => getDayRdv(toUTCDate(input))),
+  listByWeek: protectedProcedure
     .input(
       z.object({
         startDay: z.number(),
@@ -15,21 +16,27 @@ export const calendarRouter = {
       }),
     )
     .query(({ input }) => getWeekRdv(input.startDay, input.startMonth, input.startYear)),
-  listByMonth: publicProcedure
+  listByMonth: protectedProcedure
     .input(z.object({ month: z.number(), year: z.number() }))
     .query(({ input }) => getMonthRdv(input.month, input.year)),
-  addRdv: publicProcedure.input(RdvCreateSchema).mutation(({ input }) =>
-    scheduleRdv(toUTCDate(input.date), {
-      start_hour: input.start_hour,
-      end_hour: input.end_hour,
-      name: input.name,
-      rdv_type: input.rdv_type ?? null,
-      is_confirmed: input.is_confirmed ?? null,
-      contact_id: input.contact_id ?? null,
-      additional_infos: input.additional_infos ?? null,
-    }),
-  ),
-  updateRdv: publicProcedure.input(UpdateRdvSchema).mutation(async ({ input }) =>
+  addRdv: protectedProcedure.input(RdvCreateSchema).mutation(async ({ input }) => {
+    try {
+      return await scheduleRdv(toUTCDate(input.date), {
+        start_hour: input.start_hour,
+        end_hour: input.end_hour,
+        name: input.name,
+        rdv_type: input.rdv_type ?? null,
+        is_confirmed: input.is_confirmed ?? null,
+        contact_id: input.contact_id ?? null,
+        additional_infos: input.additional_infos ?? null,
+      });
+    } catch (err) {
+      if (err instanceof RdvConflictError)
+        throw new TRPCError({ code: 'CONFLICT', message: err.message });
+      throw err;
+    }
+  }),
+  updateRdv: protectedProcedure.input(UpdateRdvSchema).mutation(async ({ input }) =>
     await updateRdv(input.id, toUTCDate(input.date), {
       start_hour: input.start_hour,
       end_hour: input.end_hour,
@@ -40,5 +47,5 @@ export const calendarRouter = {
       additional_infos: input.additional_infos ?? null,
     }),
   ),
-  deleteRdv: publicProcedure.input(z.number()).mutation(({ input }) => deleteRdv(input)),
+  deleteRdv: protectedProcedure.input(z.number()).mutation(({ input }) => deleteRdv(input)),
 };

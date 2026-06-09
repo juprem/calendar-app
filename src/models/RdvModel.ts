@@ -1,4 +1,5 @@
 import z from 'zod';
+import type { Dayjs } from 'dayjs';
 
 export const RDV_TYPE_VALUES = [
   'Premier bilan',
@@ -20,7 +21,7 @@ export interface RdvTypeStyle {
   blockIcon: string;
 }
 
-export const RDV_TYPE_STYLES: Record<RdvType, RdvTypeStyle> = {
+const RDV_TYPE_STYLES: Record<RdvType, RdvTypeStyle> = {
   'Premier bilan':   { badge: 'bg-stone-50 text-stone-600 border-stone-200',      block: 'bg-stone-200 hover:bg-stone-300 text-stone-800',   blockIcon: 'text-stone-700' },
   'Suivi':           { badge: 'bg-violet-50 text-violet-700 border-violet-200',    block: 'bg-violet-200 hover:bg-violet-300 text-violet-800', blockIcon: 'text-violet-700' },
   'Rééducation':     { badge: 'bg-emerald-50 text-emerald-700 border-emerald-200', block: 'bg-emerald-200 hover:bg-emerald-300 text-emerald-800', blockIcon: 'text-emerald-700' },
@@ -29,9 +30,9 @@ export const RDV_TYPE_STYLES: Record<RdvType, RdvTypeStyle> = {
   'Privé':           { badge: 'bg-amber-50 text-amber-700 border-amber-200',       block: 'bg-amber-200 hover:bg-amber-300 text-amber-800',   blockIcon: 'text-amber-700' },
 };
 
-export const RDV_TYPE_DEFAULT_STYLE: RdvTypeStyle = {
+const RDV_TYPE_DEFAULT_STYLE: RdvTypeStyle = {
   badge: 'bg-stone-50 text-stone-500 border-stone-200',
-  block: 'bg-[#EA580C] hover:bg-[#C2410C] text-white',
+  block: 'bg-[#fda475] hover:bg-[#e67d46] text-[#7e2d02]',
   blockIcon: 'text-white',
 };
 
@@ -59,6 +60,19 @@ export const RdvCreateSchema = z.object({
 });
 
 export type CreateRdv = z.infer<typeof RdvCreateSchema>;
+
+/** Shared Ant Design form values type for both create and edit RDV forms. */
+export interface RdvFormValues {
+  contact_id?: number;
+  name: string;
+  day: Dayjs;
+  start_time: Dayjs;
+  end_time: Dayjs;
+  time_range?: [Dayjs, Dayjs];
+  rdv_type?: RdvType;
+  is_confirmed?: boolean;
+  additional_infos?: string;
+}
 
 export const UpdateRdvSchema = z.object({
   id: z.number(),

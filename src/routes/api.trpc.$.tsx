@@ -1,17 +1,28 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import { trpcRouter } from '#/integrations/trpc/router/router.ts';
+import { requireCalendarAccess } from '#/server/auth.ts';
+import { auth } from '@clerk/tanstack-react-start/server';
 
-function handler({ request }: { request: Request }) {
-  return fetchRequestHandler({
+async function handler({ request }: { request: Request }) {
+  const authState = await auth()
+  const response = await fetchRequestHandler({
     req: request,
     router: trpcRouter,
     endpoint: '/api/trpc',
-    createContext: () => ({}),
-  });
+    createContext: () => ({ auth: authState }),
+  })
+  const body = await response.text()
+
+  return new Response(body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers,
+  })
 }
 
 export const Route = createFileRoute('/api/trpc/$')({
+  beforeLoad: async () => await requireCalendarAccess(),
   server: {
     handlers: {
       GET: handler,

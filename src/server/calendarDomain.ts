@@ -4,6 +4,12 @@ import dayjs from 'dayjs';
 import { getMonthBounds, ISO_DATE } from '#/utils/dateUtils.ts';
 import type { DayWithRdv } from '#/models/CalendarModel.ts';
 
+export class RdvConflictError extends Error {
+  constructor(conflictingName: string, start: string, end: string) {
+    super(`Conflit avec "${conflictingName}" (${start}–${end})`);
+  }
+}
+
 export type { DayWithRdv };
 
 const RDV_INCLUDE = { contact: true } as const;
@@ -65,7 +71,18 @@ export async function scheduleRdv(date: Date, data: RdvData): Promise<rdv> {
 
   if (!day) {
     day = await prisma.day.create({ data: { date } });
+
+    return prisma.rdv.create({
+      data: { ...data, day_id: day.id },
+    });
   }
+
+  const existing = await prisma.rdv.findMany({ where: { day_id: day.id } });
+  const conflict = existing.find(
+    (ex) => data.start_hour < ex.end_hour && data.end_hour > ex.start_hour,
+  );
+
+  if (conflict) throw new RdvConflictError(conflict.name, conflict.start_hour, conflict.end_hour);
 
   return prisma.rdv.create({
     data: { ...data, day_id: day.id },

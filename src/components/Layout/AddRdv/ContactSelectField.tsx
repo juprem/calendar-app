@@ -1,5 +1,6 @@
 import { Form, Select } from 'antd';
 import { useGetAllContacts } from '#/services/contactService.ts';
+import { formatContactName } from '#/utils/contactUtils.ts';
 
 interface ContactSelectFieldProps {
   onContactSelect: (fullName: string) => void;
@@ -10,7 +11,7 @@ export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps)
 
   const options = contacts.map((c) => ({
     value: c.id,
-    label: `${c.civility ? c.civility + ' ' : ''}${c.firstname} ${c.lastname}`,
+    label: formatContactName(c),
   }));
 
   const handleChange = (id: number | undefined) => {

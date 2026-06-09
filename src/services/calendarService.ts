@@ -12,6 +12,7 @@ export const useGetDailyRdv = (day: Dayjs) => {
 
 export const useGetWeeklyRdv = (monday: Dayjs) => {
   const trpc = useTRPC();
+
   return useQuery(
     trpc.calendar.listByWeek.queryOptions({
       startDay: monday.date(),
@@ -55,7 +56,13 @@ export const useAddRdv = () => {
       invalidate(variables.date);
       toast.success('Rendez-vous créé');
     },
-    onError: () => toast.error('Erreur lors de la création du rendez-vous'),
+    onError: (error) => {
+      if (error.data?.code === 'CONFLICT') {
+        toast.error(error.message);
+      } else {
+        toast.error('Erreur lors de la création du rendez-vous');
+      }
+    },
   });
 };
 

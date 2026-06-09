@@ -3,7 +3,7 @@ import type { contact } from '../../generated/prisma/client.ts';
 
 export type Contact = contact;
 
-export const CIVILITY_VALUES = ['Dr', 'Mr', 'Mme'] as const;
+const CIVILITY_VALUES = ['Dr', 'Mr', 'Mme'] as const;
 export type Civility = (typeof CIVILITY_VALUES)[number];
 
 export const CIVILITY_OPTIONS = [
@@ -22,11 +22,12 @@ export const CreateContactSchema = z.object({
   firstname: z.string(),
   lastname: z.string(),
   phone_number: z.e164().optional(),
-  email: z.email().optional(),
+  email: z.string().optional(),
   notes: z.string().optional(),
   birth_date: z.coerce.date().optional(),
   birth_location: z.string().optional(),
   address: z.string().optional(),
+  general_practitioner_id: z.number().optional().nullable(),
 });
 
 export type CreateContact = z.infer<typeof CreateContactSchema>;
@@ -39,9 +40,10 @@ export const UpdateContactSchema = z.object({
   phone_number: z.e164().optional().nullable(),
   email: z.email().optional().nullable(),
   notes: z.string().optional().nullable(),
-  birth_date: z.coerce.date().optional().nullable(),
+  birth_date: z.coerce.date().optional(),
   birth_location: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
+  general_practitioner_id: z.number().optional().nullable(),
 });
 
 export type UpdateContact = z.infer<typeof UpdateContactSchema>;
