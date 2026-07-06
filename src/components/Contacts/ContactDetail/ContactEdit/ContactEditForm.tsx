@@ -1,44 +1,35 @@
-import { useState } from 'react';
 import { Button, Form } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useUpdateContact } from '#/services/contactService.ts';
-import type { Contact, UpdateContact } from '#/models/ContactModel.ts';
+import type { Contact, UpdateContact } from '#/domain/contact/models.ts';
 import { toValidCivility } from '#/models/ContactModel.ts';
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
 import { ContactFormFields } from '#/components/Contacts/ContactDetail/ContactEdit/ContactFormFields.tsx';
-import { GeneralPractitionerModal } from '#/components/Contacts/ContactDetail/ContactEdit/GeneralPractitionerModal.tsx';
-import { useGetAllGeneralPractitioners } from '#/services/generalPractitionerService.ts';
+import { useUpdateContact } from '#/services/contactService.ts';
 
 interface ContactEditFormProps {
   contact: Contact;
   onCancel: () => void;
 }
 
-type ContactFormValues = Omit<UpdateContact, 'id' | 'birth_date'> & {
-  birth_date?: Dayjs | null;
+type ContactFormValues = Omit<UpdateContact, 'id' | 'birthDate'> & {
+  birthDate?: Dayjs | null;
 };
 
 export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
   const [form] = Form.useForm<ContactFormValues>();
   const { mutate, isPending } = useUpdateContact();
-  const { data: generalPractitioners = [] } = useGetAllGeneralPractitioners();
-  const [isCreatePractitionerModalOpen, setIsCreatePractitionerModalOpen] = useState(false);
 
   const initialValues: ContactFormValues = {
     civility: toValidCivility(contact.civility),
     firstname: contact.firstname,
     lastname: contact.lastname,
     email: contact.email ?? undefined,
-    phone_number: contact.phone_number ?? undefined,
+    phoneNumber: contact.phoneNumber ?? undefined,
     notes: contact.notes ?? undefined,
-    birth_date: contact.birth_date ? dayjs(contact.birth_date) : undefined,
-    birth_location: contact.birth_location ?? undefined,
+    birthDate: dayjs(contact.birthDate),
+    birthLocation: contact.birthLocation ?? undefined,
     address: contact.address ?? undefined,
-    general_practitioner_id: contact.general_practitioner_id ?? undefined,
-  };
-
-  const handlePractitionerCreated = (newId: number) => {
-    form.setFieldValue('general_practitioner_id', newId);
+    generalPractitionerId: contact.generalPractitionerId ?? undefined,
   };
 
   const onFinish = (values: ContactFormValues) => {
@@ -46,13 +37,13 @@ export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
       {
         id: contact.id,
         ...values,
-        birth_date: values.birth_date?.toDate() ?? null,
+        birthDate: values.birthDate?.toDate() ?? null,
         email: values.email || null,
-        phone_number: values.phone_number || null,
+        phoneNumber: values.phoneNumber || null,
         notes: values.notes || null,
-        birth_location: values.birth_location || null,
+        birthLocation: values.birthLocation || null,
         address: values.address || null,
-        general_practitioner_id: values.general_practitioner_id ?? null,
+        generalPractitionerId: values.generalPractitionerId ?? null,
       },
       { onSuccess: onCancel },
     );
@@ -66,10 +57,7 @@ export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
       </div>
 
       <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onFinish}>
-        <ContactFormFields
-          generalPractitioners={generalPractitioners}
-          onOpenCreatePractitioner={() => setIsCreatePractitionerModalOpen(true)}
-        />
+        <ContactFormFields />
         <div className="flex justify-end gap-2">
           <Button onClick={onCancel}>Annuler</Button>
           <Button type="primary" htmlType="submit" loading={isPending}>
@@ -77,12 +65,6 @@ export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
           </Button>
         </div>
       </Form>
-
-      <GeneralPractitionerModal
-        open={isCreatePractitionerModalOpen}
-        onClose={() => setIsCreatePractitionerModalOpen(false)}
-        onCreated={handlePractitionerCreated}
-      />
     </div>
   );
 }

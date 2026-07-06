@@ -5,7 +5,7 @@
   "assertions": [
     {
       "id": "correct-router-file",
-      "description": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)"
+      "description": "Puts the procedure in src/configurations/trpc/router/calendarRouter.ts (not a new file, not router.ts)"
     },
     {
       "id": "uses-prisma-not-raw-sql",

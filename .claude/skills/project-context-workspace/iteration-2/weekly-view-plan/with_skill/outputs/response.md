@@ -17,7 +17,7 @@ The weekly calendar view is **already largely implemented**. Here is what alread
 | `src/components/WeeklyView/WeekDayColumn.tsx` | Done | Single day column: hour grid lines + absolutely-positioned `WeekRdvBlock` items |
 | `src/components/WeeklyView/WeekRdvBlock.tsx` | Done | Individual appointment block: top/height from start/end hours, truncated name + time |
 | `src/components/WeeklyView/weeklyViewConstants.ts` | Done | `HOUR_HEIGHT=64`, `START_HOUR=0`, `END_HOUR=24`, `HOURS` array, French `DAY_NAMES` |
-| `src/integrations/trpc/router/calendarRouter.ts` | Done | `listByWeek` procedure: fetches 7 days starting from Monday via `prisma.day.findFirst` (parallel) |
+| `src/configurations/trpc/router/calendarRouter.ts` | Done | `listByWeek` procedure: fetches 7 days starting from Monday via `prisma.day.findFirst` (parallel) |
 | `src/services/calendarService.ts` | Done | `useGetWeeklyRdv(startDay, startMonth, startYear)` hook wrapping tRPC query |
 | `src/store/calendarStore.ts` | Done | Zustand store: `day` (Dayjs) + `setDay` — shared across daily/weekly/monthly views |
 | `src/components/Layout/Layout.tsx` | Done | Navigation already includes "Hebdomadaire" link to `/hebdomadaire` |
@@ -58,11 +58,11 @@ onSuccess: (_, variables) => {
 },
 ```
 
-### 2. `listByWeek` date query uses wrong constructor (`src/integrations/trpc/router/calendarRouter.ts`)
+### 2. `listByWeek` date query uses wrong constructor (`src/configurations/trpc/router/calendarRouter.ts`)
 
 The `listByWeek` procedure calls `new Date(d.format('YYYY-MM-DD'))` — this parses as **local midnight**, not UTC midnight, which can return wrong results near midnight in non-UTC timezones (including Cloudflare Workers). The `listByDay` procedure correctly uses `new Date(\`${isoDate}T00:00:00.000Z\`)`.
 
-**File to modify:** `src/integrations/trpc/router/calendarRouter.ts`
+**File to modify:** `src/configurations/trpc/router/calendarRouter.ts`
 
 ```ts
 // Before
@@ -132,7 +132,7 @@ export const ListByMonthSchema = z.object({
 The weekly view is **functionally complete** — all files exist and the route is live at `/hebdomadaire`. The three concrete changes required to make it fully correct and production-ready are:
 
 1. **Add `listByWeek` cache invalidation** inside `useAddRdv` (`src/services/calendarService.ts`) — highest priority.
-2. **Fix the UTC date constructor** in `listByWeek` (`src/integrations/trpc/router/calendarRouter.ts`).
+2. **Fix the UTC date constructor** in `listByWeek` (`src/configurations/trpc/router/calendarRouter.ts`).
 3. **Optionally** add a loading skeleton to `WeekTimeGrid` and centralize Zod schemas in `src/models/CalendarModel.ts`.
 
 No new routes, no new tRPC routers, no schema changes, and no new dependencies are required.

@@ -11,7 +11,7 @@ const SIZE_CLASSES = {
 };
 
 export function ContactAvatar({ firstname, lastname, size = 'md' }: ContactAvatarProps) {
-  const initials = `${firstname[0]}${lastname[0]}`.toUpperCase();
+  const initials = (firstname ? `${firstname[0]}${lastname[0]}` : lastname.slice(0, 2)).toUpperCase();
 
   return (
     <div

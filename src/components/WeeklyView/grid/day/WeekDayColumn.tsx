@@ -1,5 +1,5 @@
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
-import { WeekRdvBlock } from './WeekRdvBlock.tsx';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
+import { WeekRdvBlock } from './WeekRdvBlock/WeekRdvBlock.tsx';
 import { getHourAndMinute } from '#/utils/timeUtils.ts';
 import { HOUR_HEIGHT, HOURS, QUARTERS, QUARTER_HEIGHT, START_HOUR } from '../weeklyViewConstants.ts';
 
@@ -22,8 +22,8 @@ function computeSelectionStyle(sel: { startMinutes: number; endMinutes: number }
 }
 
 function computeBlockPosition(rdv: RdvWithContact): { top: number; height: number } {
-  const [startH, startM] = getHourAndMinute(rdv.start_hour);
-  const [endH, endM] = getHourAndMinute(rdv.end_hour);
+  const [startH, startM] = getHourAndMinute(rdv.startHour);
+  const [endH, endM] = getHourAndMinute(rdv.endHour);
   const top = Math.max((startH - START_HOUR) * HOUR_HEIGHT + (startM / 60) * HOUR_HEIGHT, 0);
   const durationMin = (endH - startH) * 60 + (endM - startM);
   const height = Math.max((durationMin / 60) * HOUR_HEIGHT, QUARTER_HEIGHT);

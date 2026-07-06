@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTRPC } from '#/integrations/trpc/react.ts';
-import { toast } from 'sonner';
+import { useTRPC } from '#/configurations/trpc/react.ts';
+import { notifyErrorService, notifySuccess } from '#/domain/notifications/runtime.ts';
 
 export const useGetAllContacts = () => {
   const trpc = useTRPC();
@@ -20,9 +20,9 @@ export const useCreateContact = () => {
     ...trpc.contacts.addContact.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.contacts.listAll.queryKey() });
-      toast.success('Contact créé');
+      notifySuccess('Contact créé');
     },
-    onError: () => toast.error('Erreur lors de la création du contact'),
+    onError: (error) => notifyErrorService(error, 'Erreur lors de la création du contact'),
   });
 };
 
@@ -34,9 +34,9 @@ export const useUpdateContact = () => {
     ...trpc.contacts.updateContact.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.contacts.listAll.queryKey() });
-      toast.success('Contact mis à jour');
+      notifySuccess('Contact mis à jour');
     },
-    onError: () => toast.error('Erreur lors de la mise à jour du contact'),
+    onError: (error) => notifyErrorService(error, 'Erreur lors de la mise à jour du contact'),
   });
 };
 
@@ -48,9 +48,9 @@ export const useDeleteContact = () => {
     ...trpc.contacts.deleteContact.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trpc.contacts.listAll.queryKey() });
-      toast.success('Contact supprimé');
+      notifySuccess('Contact supprimé');
     },
-    onError: () => toast.error('Erreur lors de la suppression du contact'),
+    onError: (error) => notifyErrorService(error, 'Erreur lors de la suppression du contact'),
   });
 };
 
@@ -62,8 +62,8 @@ export const useBulkCreateContacts = () => {
     ...trpc.contacts.bulkAddContacts.mutationOptions(),
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: trpc.contacts.listAll.queryKey() });
-      toast.success(`${result.count} contact(s) importé(s)`);
+      notifySuccess(`${result.count} contact(s) importé(s)`);
     },
-    onError: () => toast.error("Erreur lors de l'importation des contacts"),
+    onError: (error) => notifyErrorService(error, "Erreur lors de l'importation des contacts"),
   });
 };

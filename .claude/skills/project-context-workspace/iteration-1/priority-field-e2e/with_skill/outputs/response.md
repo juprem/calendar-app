@@ -9,7 +9,7 @@ This guide covers every layer of the stack that must be touched, in the order yo
 1. `prisma/schema.prisma` — add the enum + column
 2. Run `npx prisma db push` — sync the DB
 3. `src/models/CalendarModel.ts` — add the Zod enum + inferred type
-4. `src/integrations/trpc/router/calendarRouter.ts` — add `priority` to `RdvCreateSchema` and the `addRdv` mutation
+4. `src/configurations/trpc/router/calendarRouter.ts` — add `priority` to `RdvCreateSchema` and the `addRdv` mutation
 5. `src/services/calendarService.ts` — no change needed (service passes input through generically)
 6. `src/components/Layout/AddRdv/AddRdv.tsx` — add a `Select` field for priority in the form
 7. `src/components/DailyView/RdvCard/RdvCard.tsx` — display the priority badge
@@ -83,7 +83,7 @@ export type RdvPriority = z.infer<typeof RdvPrioritySchema>;
 
 ---
 
-## Step 4 — `src/integrations/trpc/router/calendarRouter.ts`
+## Step 4 — `src/configurations/trpc/router/calendarRouter.ts`
 
 Import `RdvPrioritySchema` and add it as an optional field in `RdvCreateSchema`. Pass it through to the Prisma `create` call.
 
@@ -324,7 +324,7 @@ The `priority` value coming from Prisma is typed as `Priority | null` (the gener
 | 1 | `prisma/schema.prisma` | Add `Priority` enum + optional `priority` column on `rdv` |
 | 2 | Terminal | `npx prisma db push` |
 | 3 | `src/models/CalendarModel.ts` | Add `RdvPrioritySchema` Zod enum + `RdvPriority` type |
-| 4 | `src/integrations/trpc/router/calendarRouter.ts` | Extend `RdvCreateSchema` and `addRdv` Prisma call |
+| 4 | `src/configurations/trpc/router/calendarRouter.ts` | Extend `RdvCreateSchema` and `addRdv` Prisma call |
 | 5 | `src/services/calendarService.ts` | No change |
 | 6 | `src/components/Layout/AddRdv/AddRdv.tsx` | Add `Select` priority field to the form |
 | 7 | `src/components/DailyView/RdvCard/RdvCard.tsx` | Add `priority` prop + colored badge |

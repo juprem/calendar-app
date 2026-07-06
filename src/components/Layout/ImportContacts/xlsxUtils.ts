@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { CreateContact } from '#/models/ContactModel.ts';
+import type { CreateContact } from '#/domain/contact/models.ts';
 import { toValidCivility } from '#/models/ContactModel.ts';
 
 const E164_REGEX = /^\+[1-9]\d{7,14}$/;
@@ -89,9 +89,9 @@ export function mapRowToContact(row: XlsxRow): CreateContact | null {
     firstname: firstname ?? '',
     lastname: lastname ?? '',
     civility: normalizeCivility(toStringOrNull(row['Civilité'])),
-    birth_date: normalizeDate(row['Date de naissance']),
+    birthDate: normalizeDate(row['Date de naissance']),
     email: normalizeEmail(toStringOrNull(row['Email'])),
-    phone_number: phone,
+    phoneNumber: phone,
     address,
     notes: row['Remarque'] ? String(row['Remarque']).trim() : undefined,
   };

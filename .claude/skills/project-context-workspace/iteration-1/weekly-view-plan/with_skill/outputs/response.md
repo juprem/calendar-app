@@ -30,7 +30,7 @@ The data-fetching wrapper. Mirrors the pattern of `src/components/DailyView/Dail
 
 A week navigation control — "previous week / current week / next week" — similar to `src/components/DailyView/Today.tsx`. Use the Ant Design `DatePicker.WeekPicker` variant (available in Ant Design 6.x) with `picker="week"` and call `setDay` from the store.
 
-### 4. `src/integrations/trpc/router/calendarRouter.ts` — **add `listByWeek` procedure** _(optional optimization)_
+### 4. `src/configurations/trpc/router/calendarRouter.ts` — **add `listByWeek` procedure** _(optional optimization)_
 
 The simplest approach is 7 individual `listByDay` queries (one per day). If you later want a single round-trip, add a `listByWeek` procedure:
 

@@ -11,7 +11,7 @@
     {
       "text": "Mentions updating calendarRouter.ts to include priority in the input/output",
       "passed": true,
-      "evidence": "Step 2 updates RdvCreateSchema and addRdv handler in src/integrations/trpc/router/calendarRouter.ts."
+      "evidence": "Step 2 updates RdvCreateSchema and addRdv handler in src/configurations/trpc/router/calendarRouter.ts."
     },
     {
       "text": "Mentions updating src/components/Layout/AddRdv/ for the form field",

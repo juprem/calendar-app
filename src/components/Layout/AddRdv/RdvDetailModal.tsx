@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Button, Modal, Popconfirm } from 'antd';
-import { Clock, User, FileText, Trash2, Pencil } from 'lucide-react';
+import dayjs from 'dayjs';
+import { Clock, User, FileText, Trash2, Pencil, CalendarClock } from 'lucide-react';
 import { RdvStatusIcon } from '#/components/RdvStatusIcon.tsx';
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
-import { getRdvTypeStyle } from '#/models/RdvModel.ts';
-import { useDeleteRdv } from '#/services/calendarService.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
+import { CONFIRMATION_MODE_OPTIONS, getRdvTypeStyle } from '#/models/RdvModel.ts';
 import { RdvEditForm } from '#/components/Layout/AddRdv/RdvEditForm.tsx';
-import { formatContactName } from '#/utils/contactUtils.ts';
+import { formatContactName, formatPhoneNumber } from '#/utils/contactUtils.ts';
+import { useDeleteRdv } from '#/services/calendarService.ts';
+import { RDV_MODAL_STYLES } from '#/components/Layout/AddRdv/rdvModalStyles.ts';
 
 interface RdvDetailModalProps {
   rdv: RdvWithContact;
@@ -18,9 +20,12 @@ interface RdvDetailModalProps {
 export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { mutate: deleteRdv, isPending: isDeleting } = useDeleteRdv(isoDate);
-  const typeStyle = getRdvTypeStyle(rdv.rdv_type);
+  const typeStyle = getRdvTypeStyle(rdv.rdvType);
 
   const contactLabel = rdv.contact ? formatContactName(rdv.contact) : null;
+  const confirmationModeLabel = CONFIRMATION_MODE_OPTIONS.find(
+    (option) => option.value === rdv.confirmationMode,
+  )?.label;
 
   return (
     <Modal
@@ -28,10 +33,7 @@ export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalPr
       open={open}
       centered
       footer={null}
-      styles={{
-        container: { maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
-        body: { overflowY: 'auto', flex: '1 1 auto', maxHeight: '90vh' },
-      }}
+      styles={RDV_MODAL_STYLES}
       onCancel={onClose}
     >
       {isEditing ? (
@@ -42,21 +44,31 @@ export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalPr
             <div className="flex items-center gap-3">
               <Clock size={16} className="text-[#92400E] shrink-0" />
               <span className="text-sm text-[#1C1917] font-medium">
-                {rdv.start_hour} – {rdv.end_hour}
+                {rdv.startHour} – {rdv.endHour}
               </span>
             </div>
 
-            {rdv.rdv_type && (
+            {rdv.rdvType && (
               <div className="flex items-center gap-3">
-                <span className={`text-xs px-2.5 py-1 rounded-full border ${typeStyle.badge}`}>{rdv.rdv_type}</span>
+                <span className={`text-xs px-2.5 py-1 rounded-full border ${typeStyle.badge}`}>{rdv.rdvType}</span>
               </div>
             )}
 
-            {rdv.is_confirmed !== null && (
+            {rdv.isConfirmed !== null && (
               <div className="flex items-center gap-3">
-                <RdvStatusIcon isConfirmed={rdv.is_confirmed} size={16} />
+                <RdvStatusIcon isConfirmed={rdv.isConfirmed} size={16} />
                 <span className="text-sm text-[#78716C]">
-                  {rdv.is_confirmed ? 'Confirmé' : 'En attente de confirmation'}
+                  {rdv.isConfirmed ? 'Confirmé' : 'En attente de confirmation'}
+                </span>
+              </div>
+            )}
+
+            {rdv.confirmationDate && (
+              <div className="flex items-center gap-3">
+                <CalendarClock size={16} className="text-[#92400E] shrink-0" />
+                <span className="text-sm text-[#78716C]">
+                  Date de confirmation : {dayjs(rdv.confirmationDate).format('DD/MM/YYYY')} (
+                  {confirmationModeLabel ?? CONFIRMATION_MODE_OPTIONS[0].label})
                 </span>
               </div>
             )}
@@ -68,10 +80,16 @@ export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalPr
               </div>
             )}
 
-            {rdv.additional_infos && (
+            {rdv.contact?.phoneNumber && (
+              <div className="flex items-start gap-3">
+                <span className="text-sm text-[#1C1917]">{formatPhoneNumber(rdv.contact?.phoneNumber)}</span>
+              </div>
+            )}
+
+            {rdv.additionalInfos && (
               <div className="flex items-start gap-3">
                 <FileText size={16} className="text-[#92400E] shrink-0 mt-0.5" />
-                <p className="text-sm text-[#78716C] leading-relaxed">{rdv.additional_infos}</p>
+                <p className="text-sm text-[#78716C] leading-relaxed">{rdv.additionalInfos}</p>
               </div>
             )}
           </div>

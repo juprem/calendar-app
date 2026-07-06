@@ -1,10 +1,10 @@
 import dayjs from 'dayjs';
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
-import { useGetMonthlyRdv } from '#/services/calendarService.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
 import { useCalendarStore } from '#/store/calendarStore.ts';
 import { MonthlyView } from '#/components/MonthlyView/MonthlyView.tsx';
 import type { MonthCell } from '#/models/CalendarModel.ts';
 import { DataState } from '#/components/DataState/DataState.tsx';
+import { useGetMonthlyRdv } from '#/services/calendarService.ts';
 
 export function MonthlyViewWrapper() {
   const today = dayjs();

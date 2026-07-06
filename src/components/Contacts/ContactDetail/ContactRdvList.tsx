@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { DatePicker, Segmented } from 'antd';
 import { CalendarDays } from 'lucide-react';
 import dayjs, { type Dayjs } from 'dayjs';
-import { useGetContactRdv } from '#/services/contactService.ts';
 import { RdvCard } from '#/components/DailyView/RdvCard/RdvCard.tsx';
 import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
 import { DataState } from '#/components/DataState/DataState.tsx';
-import type { RdvWithDay } from '#/models/CalendarModel.ts';
+import type { RdvHistoryEntry } from '#/domain/contact/models.ts';
 import { ISO_DATE } from '#/utils/dateUtils.ts';
+import { useGetContactRdv } from '#/services/contactService.ts';
 
 interface ContactRdvListProps {
   contactId: number;
@@ -20,13 +20,13 @@ const TAB_OPTIONS: { label: string; value: RdvTab }[] = [
   { label: 'Passés', value: 'past' },
 ];
 
-const getIsoDate = (rdv: RdvWithDay) => dayjs(rdv.day.date).format(ISO_DATE);
+const getIsoDate = (rdv: RdvHistoryEntry) => dayjs(rdv.day.date).format(ISO_DATE);
 
 export function ContactRdvList({ contactId }: ContactRdvListProps) {
   const { data: rdvs = [], isLoading, isError } = useGetContactRdv(contactId);
   const [tab, setTab] = useState<RdvTab>('upcoming');
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null]>([null, null]);
-  const [selectedRdv, setSelectedRdv] = useState<RdvWithDay | null>(null);
+  const [selectedRdv, setSelectedRdv] = useState<RdvHistoryEntry | null>(null);
 
   const today = dayjs();
 

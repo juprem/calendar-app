@@ -13,7 +13,7 @@ const PREVIEW_COLUMNS = [
   { title: 'Civilité', dataIndex: 'civility', key: 'civility', width: 70 },
   { title: 'Prénom', dataIndex: 'firstname', key: 'firstname' },
   { title: 'Nom', dataIndex: 'lastname', key: 'lastname' },
-  { title: 'Téléphone', dataIndex: 'phone_number', key: 'phone_number' },
+  { title: 'Téléphone', dataIndex: 'phoneNumber', key: 'phoneNumber' },
   { title: 'Email', dataIndex: 'email', key: 'email' },
 ];
 

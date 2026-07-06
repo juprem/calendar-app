@@ -1,16 +1,6 @@
-import z from 'zod';
 import type { Dayjs } from 'dayjs';
-
-export const RDV_TYPE_VALUES = [
-  'Premier bilan',
-  'Suivi',
-  'Rééducation',
-  'Bloc opératoire',
-  'Urgence',
-  'Privé',
-] as const;
-
-export type RdvType = (typeof RDV_TYPE_VALUES)[number];
+import { RDV_TYPE_VALUES } from '#/domain/calendar/models.ts';
+import type { ConfirmationMode, RdvType } from '#/domain/calendar/models.ts';
 
 export interface RdvTypeStyle {
   /** Subtle pill badge — light bg, coloured text, thin border */
@@ -48,42 +38,21 @@ export const STATUT_OPTIONS = [
   { value: false, label: 'En attente' },
 ];
 
-export const RdvCreateSchema = z.object({
-  date: z.string(),
-  name: z.string(),
-  start_hour: z.string(),
-  end_hour: z.string(),
-  rdv_type: z.enum(RDV_TYPE_VALUES).optional(),
-  is_confirmed: z.boolean().optional(),
-  contact_id: z.number().optional().nullable(),
-  additional_infos: z.string().optional().nullable(),
-});
-
-export type CreateRdv = z.infer<typeof RdvCreateSchema>;
+export const CONFIRMATION_MODE_OPTIONS = [
+  { value: 'email', label: 'Email' },
+  { value: 'direct', label: 'Direct' },
+  { value: 'phone', label: 'Téléphone' },
+];
 
 /** Shared Ant Design form values type for both create and edit RDV forms. */
 export interface RdvFormValues {
-  contact_id?: number;
+  contactId?: number;
   name: string;
   day: Dayjs;
-  start_time: Dayjs;
-  end_time: Dayjs;
-  time_range?: [Dayjs, Dayjs];
-  rdv_type?: RdvType;
-  is_confirmed?: boolean;
-  additional_infos?: string;
+  timeRange?: [Dayjs, Dayjs];
+  rdvType?: RdvType;
+  isConfirmed?: boolean;
+  additionalInfos?: string;
+  confirmationDate?: Dayjs;
+  confirmationMode?: ConfirmationMode;
 }
-
-export const UpdateRdvSchema = z.object({
-  id: z.number(),
-  date: z.string(),
-  name: z.string(),
-  start_hour: z.string(),
-  end_hour: z.string(),
-  rdv_type: z.enum(RDV_TYPE_VALUES).optional().nullable(),
-  is_confirmed: z.boolean().optional().nullable(),
-  contact_id: z.number().optional().nullable(),
-  additional_infos: z.string().optional().nullable(),
-});
-
-export type UpdateRdv = z.infer<typeof UpdateRdvSchema>;

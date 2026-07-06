@@ -21,7 +21,7 @@ export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps)
   };
 
   return (
-    <Form.Item label="Patient (contact)" name="contact_id">
+    <Form.Item label="Patient (contact)" name="contactId">
       <Select
         placeholder="Sélectionner un contact"
         allowClear

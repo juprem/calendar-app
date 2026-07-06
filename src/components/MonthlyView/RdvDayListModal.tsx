@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Modal } from 'antd';
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
 import { RdvCard } from '#/components/DailyView/RdvCard/RdvCard.tsx';
 import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
 

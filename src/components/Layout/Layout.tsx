@@ -71,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
         </header>
         <AddRdv open={open} onClose={() => setOpen(false)} />
       </Show>
-      <div className="flex-1 min-h-0 overflow-y-auto">{children}</div>
+      <div className="flex-1 min-h-0">{children}</div>
     </div>
   );
 }

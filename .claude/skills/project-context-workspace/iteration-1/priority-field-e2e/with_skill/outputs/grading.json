@@ -11,7 +11,7 @@
     {
       "text": "Mentions updating calendarRouter.ts to include priority in the input/output",
       "passed": true,
-      "evidence": "Step 4 explicitly targets src/integrations/trpc/router/calendarRouter.ts, extending RdvCreateSchema and the Prisma create call"
+      "evidence": "Step 4 explicitly targets src/configurations/trpc/router/calendarRouter.ts, extending RdvCreateSchema and the Prisma create call"
     },
     {
       "text": "Mentions updating src/components/Layout/AddRdv/ for the form field",

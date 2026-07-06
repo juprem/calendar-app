@@ -5,10 +5,10 @@ import { WeekDayHeader } from './day/WeekDayHeader.tsx';
 import { HourLabel } from './HourLabel.tsx';
 import { HOUR_HEIGHT, HOURS, START_HOUR, END_HOUR, DAY_NAMES } from './weeklyViewConstants.ts';
 import { useDragToCreate } from './hooks/useDragToCreate.ts';
-import type { DayWithRdv, RdvWithContact } from '#/models/CalendarModel.ts';
+import type { DayWithRdvs, RdvWithContact } from '#/domain/calendar/models.ts';
 
 interface WeekTimeGridProps {
-  weekDays: DayWithRdv[];
+  weekDays: DayWithRdvs[];
   monday: Dayjs;
   isDateToday: (date: Dayjs) => boolean;
   onRdvClick: (rdv: RdvWithContact, isoDate: string) => void;
@@ -91,7 +91,7 @@ export function WeekTimeGrid({ weekDays, monday, isDateToday, onRdvClick, onCrea
             const date = monday.add(i, 'day');
 
             return (
-              <WeekDayHeader key={date} date={date} dayName={DAY_NAMES[i]} isToday={isDateToday(date)} />
+              <WeekDayHeader key={date.toString()} date={date} dayName={DAY_NAMES[i]} isToday={isDateToday(date)} />
             );
           })}
         </div>
@@ -116,7 +116,7 @@ export function WeekTimeGrid({ weekDays, monday, isDateToday, onRdvClick, onCrea
             const columnDate = monday.add(i, 'day');
             return (
               <WeekDayColumn
-                key={columnDate}
+                key={columnDate.toString()}
                 rdvs={dayData?.rdv ?? []}
                 isToday={isDateToday(columnDate)}
                 isoDate={columnDate.format('YYYY-MM-DD')}

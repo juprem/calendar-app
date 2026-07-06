@@ -2,7 +2,7 @@
 
 ## Overview
 
-The procedure belongs in `src/integrations/trpc/router/calendarRouter.ts` alongside the existing `listByDay` and `addRdv` procedures — both already live in that file. No new sub-router is needed (same domain). No changes to `router.ts` are required.
+The procedure belongs in `src/configurations/trpc/router/calendarRouter.ts` alongside the existing `listByDay` and `addRdv` procedures — both already live in that file. No new sub-router is needed (same domain). No changes to `router.ts` are required.
 
 ---
 
@@ -66,7 +66,7 @@ The return type is inferred by Prisma as `(day & { rdv: rdv[] })[]`.
 
 ## Step 4 — The complete updated file
 
-Edit `src/integrations/trpc/router/calendarRouter.ts`:
+Edit `src/configurations/trpc/router/calendarRouter.ts`:
 
 ```ts
 import z from 'zod';
@@ -138,7 +138,7 @@ export const calendarRouter = {
 };
 ```
 
-No changes to `src/integrations/trpc/router/router.ts` — the `calendarRouter` object is already registered under the `calendar` namespace:
+No changes to `src/configurations/trpc/router/router.ts` — the `calendarRouter` object is already registered under the `calendar` namespace:
 
 ```ts
 // router.ts — unchanged
@@ -155,7 +155,7 @@ export const trpcRouter = createTRPCRouter({
 Following convention #4 ("calling the API in a component → always go through a service hook in `src/services/`"), expose the procedure via `src/services/calendarService.ts`:
 
 ```ts
-import { trpc } from '@/integrations/trpc/react';
+import { trpc } from '@/configurations/trpc/react';
 
 export function useListByMonth(month: number, year: number) {
   return trpc.calendar.listByMonth.useQuery(
@@ -182,8 +182,8 @@ function MonthlyView({ month, year }: { month: number; year: number }) {
 
 | File | Change |
 |---|---|
-| `src/integrations/trpc/router/calendarRouter.ts` | Add `ListByMonthSchema` + `listByMonth` procedure |
-| `src/integrations/trpc/router/router.ts` | No change — already registers `calendarRouter` |
+| `src/configurations/trpc/router/calendarRouter.ts` | Add `ListByMonthSchema` + `listByMonth` procedure |
+| `src/configurations/trpc/router/router.ts` | No change — already registers `calendarRouter` |
 | `prisma/schema.prisma` | No change — `index_month` already exists |
 | `src/services/calendarService.ts` | Add `useListByMonth` hook (follow-on step) |
 

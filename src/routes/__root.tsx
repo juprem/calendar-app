@@ -2,9 +2,9 @@ import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/reac
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 
-import ClerkProvider from '../integrations/clerk/provider';
+import ClerkProvider from '../configurations/clerk/provider';
 
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
+import TanStackQueryDevtools from '../configurations/tanstack-query/devtools';
 
 import appCss from '../styles.css?url';
 
@@ -17,7 +17,7 @@ import dayjs from 'dayjs';
 import { ConfigProvider } from 'antd';
 import frFR from 'antd/locale/fr_FR';
 import { Toaster } from 'sonner';
-import type { TRPCRouter } from '#/integrations/trpc/router/router.ts';
+import type { TRPCRouter } from '#/configurations/trpc/router/router.ts';
 
 dayjs.locale('fr');
 

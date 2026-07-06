@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { rdv } from '../../generated/prisma/client.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
 
 /** Convert a total-minutes value to a zero-padded "HH:mm" string. */
 export function minutesToHHmm(totalMinutes: number): string {
@@ -24,13 +24,13 @@ export interface NextRdv {
  * Return the next upcoming RDV relative to the current time, or null if none.
  * Current time is evaluated on each call — not at module load time.
  */
-export function getNextRdv(rdvs: rdv[]): NextRdv | null {
+export function getNextRdv(rdvs: RdvWithContact[]): NextRdv | null {
   const now = dayjs();
   const hour = now.hour();
   const minute = now.minute();
 
-  const futureRdvs = rdvs.filter((r) => {
-    const [rdvH, rdvM] = getHourAndMinute(r.start_hour);
+  const futureRdvs = rdvs.filter((appointment) => {
+    const [rdvH, rdvM] = getHourAndMinute(appointment.startHour);
     return rdvH > hour || (rdvH === hour && rdvM > minute);
   });
 
@@ -38,8 +38,8 @@ export function getNextRdv(rdvs: rdv[]): NextRdv | null {
 
   const next = futureRdvs[0];
   return {
-    time: next.start_hour,
+    time: next.startHour,
     patientName: next.name,
-    consultationType: next.rdv_type,
+    consultationType: next.rdvType,
   };
 }

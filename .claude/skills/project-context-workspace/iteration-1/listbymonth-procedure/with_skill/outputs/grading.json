@@ -4,9 +4,9 @@
   "run": "with_skill",
   "expectations": [
     {
-      "text": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
+      "text": "Puts the procedure in src/configurations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
       "passed": true,
-      "evidence": "Response explicitly states 'File to modify: src/integrations/trpc/router/calendarRouter.ts'"
+      "evidence": "Response explicitly states 'File to modify: src/configurations/trpc/router/calendarRouter.ts'"
     },
     {
       "text": "Uses Prisma ORM (prisma.day.findMany or similar), not raw SQL or fetch",

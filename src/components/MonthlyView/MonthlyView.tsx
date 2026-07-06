@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
-import { MonthSelector } from '#/components/MonthlyView/MonthSelector.tsx';
-import { CalendarCell } from '#/components/MonthlyView/CalendarCell.tsx';
+import { PeriodSelector } from '#/components/PeriodSelector/PeriodSelector.tsx';
 import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
-import type { MonthCell, RdvWithContact, SelectedRdv } from '#/models/CalendarModel.ts';
+import type { MonthCell, SelectedRdv } from '#/models/CalendarModel.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
+import { CalendarCell } from '#/components/MonthlyView/Calendar/CalendarCell.tsx';
 
 const WEEKDAY_HEADERS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -27,7 +28,7 @@ export function MonthlyView({ cells, isToday, isLoading = false, year, month }: 
 
   return (
     <div className="flex flex-col gap-2 px-6">
-      <MonthSelector isLoading={isLoading} />
+      <PeriodSelector unit="month" isLoading={isLoading} />
 
       <div className="border border-[#E7E5E4] rounded-xl overflow-hidden">
         <div className="grid grid-cols-7 bg-[#FFFBF5]">

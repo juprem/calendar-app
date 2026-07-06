@@ -23,6 +23,8 @@ model rdv {
   rdv_type         String?  @db.VarChar
   is_confirmed     Boolean?
   additional_infos String?  @db.VarChar
+  confirmation_date DateTime? @db.Timestamp(6)
+  confirmation_mode String?  @db.VarChar
   contact_id       Int?
   contact          contact? @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
   day              day      @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")

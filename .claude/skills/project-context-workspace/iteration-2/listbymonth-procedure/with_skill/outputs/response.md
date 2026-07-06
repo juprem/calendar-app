@@ -4,7 +4,7 @@
 
 The `listByMonth` procedure **already exists** in the codebase. It was found in:
 
-- **Router**: `/mnt/c/Users/oabdelnour/Documents/perso/calendar-app/src/integrations/trpc/router/calendarRouter.ts`
+- **Router**: `/mnt/c/Users/oabdelnour/Documents/perso/calendar-app/src/configurations/trpc/router/calendarRouter.ts`
 - **Service hook**: `/mnt/c/Users/oabdelnour/Documents/perso/calendar-app/src/services/calendarService.ts`
 
 A **syntax bug** was found and fixed during this task (see below).
@@ -15,7 +15,7 @@ A **syntax bug** was found and fixed during this task (see below).
 
 ### tRPC procedure — `calendarRouter.ts`
 
-File: `src/integrations/trpc/router/calendarRouter.ts`
+File: `src/configurations/trpc/router/calendarRouter.ts`
 
 ```ts
 listByMonth: publicProcedure

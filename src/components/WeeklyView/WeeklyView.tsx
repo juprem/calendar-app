@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
-import { WeekSelector } from '#/components/WeeklyView/WeekSelector.tsx';
+import { PeriodSelector } from '#/components/PeriodSelector/PeriodSelector.tsx';
 import { WeekTimeGrid } from '#/components/WeeklyView/grid/WeekTimeGrid.tsx';
 import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
 import { AddRdv } from '#/components/Layout/AddRdv/AddRdv.tsx';
-import type { DayWithRdv, SelectedRdv } from '#/models/CalendarModel.ts';
+import type { SelectedRdv } from '#/models/CalendarModel.ts';
+import type { DayWithRdvs } from '#/domain/calendar/models.ts';
 
 interface CreateDefaults {
   isoDate: string;
@@ -14,7 +15,7 @@ interface CreateDefaults {
 }
 
 interface WeeklyViewProps {
-  weekDays: (DayWithRdv | null)[];
+  weekDays: DayWithRdvs[];
   monday: Dayjs;
   isLoading?: boolean;
 }
@@ -35,7 +36,7 @@ export function WeeklyView({ weekDays, monday, isLoading = false }: WeeklyViewPr
 
   return (
     <div className="flex-1 flex flex-col gap-2 min-h-0">
-      <WeekSelector isLoading={isLoading} />
+      <PeriodSelector unit="week" isLoading={isLoading} />
 
       <div className="flex-1 flex flex-col min-h-0 border border-[#E7E5E4] rounded-xl overflow-hidden">
         <WeekTimeGrid

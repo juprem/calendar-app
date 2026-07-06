@@ -1,28 +1,22 @@
 import { Tooltip } from 'antd';
 import { Calendar, Clock, User } from 'lucide-react';
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
-import { getRdvTypeStyle } from '#/models/RdvModel.ts';
-import { formatContactName } from '#/utils/contactUtils.ts';
-import { useCalendarStore } from '#/store/calendarStore.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
+import { useRdvPresentation } from '#/hooks/useRdvPresentation.ts';
 import { RdvStatusIcon } from '#/components/RdvStatusIcon.tsx';
 import dayjs from 'dayjs';
 
 interface RdvCardProps {
-  rdv: RdvWithContact;
+  rdv: RdvWithContact & { day?: { date: Date } };
   displayDate?: boolean;
   onClick?: () => void;
 }
 
 export function RdvCard({ rdv, displayDate = false, onClick }: RdvCardProps) {
-  const { start_hour, end_hour, name, rdv_type, is_confirmed, contact, additional_infos, day } = rdv;
-  const contactFilter = useCalendarStore((s) => s.contactFilter);
-  const typeStyle = getRdvTypeStyle(rdv_type);
-  const isDimmed = contactFilter !== null && rdv.contact_id !== contactFilter;
-
-  const contactLabel = contact ? formatContactName(contact) : null;
+  const { startHour, endHour, name, rdvType, isConfirmed, additionalInfos, day } = rdv;
+  const { typeStyle, isDimmed, contactLabel } = useRdvPresentation(rdv);
 
   return (
-    <Tooltip title={additional_infos || undefined} placement="top">
+    <Tooltip title={additionalInfos || undefined} placement="top">
       <div
         tabIndex={0}
         role="button"
@@ -32,15 +26,15 @@ export function RdvCard({ rdv, displayDate = false, onClick }: RdvCardProps) {
         <div className="flex items-center gap-2 w-20 shrink-0">
           <Clock size={14} className="text-[#78716C] shrink-0" />
           <div>
-            <p className="text-sm font-medium text-[#1C1917] leading-tight">{start_hour}</p>
-            <p className="text-xs text-[#78716C] leading-tight">{end_hour}</p>
+            <p className="text-sm font-medium text-[#1C1917] leading-tight">{startHour}</p>
+            <p className="text-xs text-[#78716C] leading-tight">{endHour}</p>
           </div>
         </div>
 
-        {displayDate && (<div className="flex items-center gap-2 w-20 shrink-0">
+        {displayDate && day && (<div className="flex items-center gap-2 w-20 shrink-0">
           <Calendar size={14} className="text-[#78716C] shrink-0" />
           <div>
-            <p className="text-sm font-medium text-[#1C1917] leading-tight">{dayjs(day.datetime).format("DD/MM")}</p>
+            <p className="text-sm font-medium text-[#1C1917] leading-tight">{dayjs(day.date).format("DD/MM")}</p>
           </div>
         </div>)}
 
@@ -57,12 +51,12 @@ export function RdvCard({ rdv, displayDate = false, onClick }: RdvCardProps) {
         </div>
 
         <div className="flex items-center gap-3 ml-3 shrink-0">
-          {rdv_type && (
+          {rdvType && (
             <span className={`text-xs px-2.5 py-1 rounded-full border whitespace-nowrap ${typeStyle.badge}`}>
-              {rdv_type}
+              {rdvType}
             </span>
           )}
-          <RdvStatusIcon isConfirmed={is_confirmed} size={14} />
+          <RdvStatusIcon isConfirmed={isConfirmed} size={14} />
         </div>
       </div>
     </Tooltip>

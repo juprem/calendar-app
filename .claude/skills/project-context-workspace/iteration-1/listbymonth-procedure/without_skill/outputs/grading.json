@@ -4,7 +4,7 @@
   "run": "without_skill",
   "expectations": [
     {
-      "text": "Puts the procedure in src/integrations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
+      "text": "Puts the procedure in src/configurations/trpc/router/calendarRouter.ts (not a new file, not router.ts)",
       "passed": false,
       "evidence": "Response did not reference the actual file path. Code was presented without specifying which file to modify."
     },

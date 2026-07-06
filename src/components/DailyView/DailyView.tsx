@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { MetricCard } from '#/components/MetricCard/MetricCard.tsx';
 import { DayNavigator } from '#/components/DailyView/DayNavigator.tsx';
-import type { RdvWithContact } from '#/models/CalendarModel.ts';
+import type { RdvWithContact } from '#/domain/calendar/models.ts';
 import { RdvCard } from '#/components/DailyView/RdvCard/RdvCard.tsx';
 import { getNextRdv } from '#/utils/timeUtils.ts';
-import { EditRdvModal } from '#/components/Layout/AddRdv/EditRdvModal.tsx';
+import { RdvDetailModal } from '#/components/Layout/AddRdv/RdvDetailModal.tsx';
 
 interface DailyViewProps {
   rdvs: RdvWithContact[];
@@ -13,7 +13,7 @@ interface DailyViewProps {
 }
 
 export function DailyView({ rdvs, isoDate, isLoading }: DailyViewProps) {
-  const [editingRdv, setEditingRdv] = useState<RdvWithContact | null>(null);
+  const [selectedRdv, setSelectedRdv] = useState<RdvWithContact | null>(null);
   const lastAppointment = rdvs[rdvs.length - 1];
   const nextAppointment = rdvs.length === 0 ? null : getNextRdv(rdvs);
   const nextType = nextAppointment?.consultationType ? ` · ${nextAppointment.consultationType}` : '';
@@ -30,23 +30,23 @@ export function DailyView({ rdvs, isoDate, isLoading }: DailyViewProps) {
         />
         <MetricCard
           label="Dernier RDV"
-          value={lastAppointment ? lastAppointment.start_hour : '-'}
+          value={lastAppointment ? lastAppointment.startHour : '-'}
           subtitle={lastAppointment ? lastAppointment.name : undefined}
         />
       </div>
 
       <div>
         {rdvs.map((rdv) => (
-          <RdvCard key={rdv.id} rdv={rdv} onClick={() => setEditingRdv(rdv)} />
+          <RdvCard key={rdv.id} rdv={rdv} onClick={() => setSelectedRdv(rdv)} />
         ))}
       </div>
 
-      {editingRdv && (
-        <EditRdvModal
-          rdv={editingRdv}
+      {selectedRdv && (
+        <RdvDetailModal
+          rdv={selectedRdv}
           isoDate={isoDate}
           open={true}
-          onClose={() => setEditingRdv(null)}
+          onClose={() => setSelectedRdv(null)}
         />
       )}
     </div>

@@ -807,7 +807,7 @@ and behind Clerk authentication.
 
 #### 1. Add a tRPC procedure
 
-In `src/integrations/trpc/router/calendarRouter.ts`, add:
+In `src/configurations/trpc/router/calendarRouter.ts`, add:
 
 ```typescript
 import { scheduleAppointment } from "@/ai/schedulingAssistant";

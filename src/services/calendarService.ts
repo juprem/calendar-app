@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useTRPC } from '#/integrations/trpc/react.ts';
+import { useTRPC } from '#/configurations/trpc/react.ts';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { parseDateComponents, getMondayOf } from '#/utils/dateUtils.ts';
-import { toast } from 'sonner';
+import { notifyErrorService, notifySuccess } from '#/domain/notifications/runtime.ts';
 
 export const useGetDailyRdv = (day: Dayjs) => {
   const trpc = useTRPC();
@@ -54,14 +54,11 @@ export const useAddRdv = () => {
     ...trpc.calendar.addRdv.mutationOptions(),
     onSuccess: (_, variables) => {
       invalidate(variables.date);
-      toast.success('Rendez-vous créé');
+      notifySuccess('Rendez-vous créé');
     },
     onError: (error) => {
-      if (error.data?.code === 'CONFLICT') {
-        toast.error(error.message);
-      } else {
-        toast.error('Erreur lors de la création du rendez-vous');
-      }
+      console.log(error);
+      notifyErrorService(error, 'Erreur lors de la création du rendez-vous');
     },
   });
 };
@@ -69,14 +66,16 @@ export const useAddRdv = () => {
 export const useUpdateRdv = () => {
   const trpc = useTRPC();
   const invalidate = useCalendarInvalidation();
+  const queryClient = useQueryClient();
 
   return useMutation({
     ...trpc.calendar.updateRdv.mutationOptions(),
     onSuccess: (_, variables) => {
       invalidate(variables.date);
-      toast.success('Rendez-vous mis à jour');
+      queryClient.invalidateQueries({ queryKey: trpc.contacts.listRdvByContact.queryKey() });
+      notifySuccess('Rendez-vous mis à jour');
     },
-    onError: () => toast.error('Erreur lors de la mise à jour du rendez-vous'),
+    onError: (error) => notifyErrorService(error, 'Erreur lors de la mise à jour du rendez-vous'),
   });
 };
 
@@ -88,8 +87,8 @@ export const useDeleteRdv = (isoDate: string) => {
     ...trpc.calendar.deleteRdv.mutationOptions(),
     onSuccess: () => {
       invalidate(isoDate);
-      toast.success('Rendez-vous supprimé');
+      notifySuccess('Rendez-vous supprimé');
     },
-    onError: () => toast.error('Erreur lors de la suppression du rendez-vous'),
+    onError: (error) => notifyErrorService(error, 'Erreur lors de la suppression du rendez-vous'),
   });
 };

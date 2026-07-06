@@ -10,7 +10,7 @@
     {
       "id": 1,
       "prompt": "Add a tRPC procedure called 'listByMonth' that returns all appointments for a given month and year.",
-      "expected_output": "Code that: (1) adds the procedure to calendarRouter.ts in src/integrations/trpc/router/, (2) uses Prisma to query the 'rdv' model via the 'day' model relation, (3) validates input with Zod, (4) registers nothing extra in router.ts (it's already in calendarRouter). Should NOT use REST or fetch directly.",
+      "expected_output": "Code that: (1) adds the procedure to calendarRouter.ts in src/configurations/trpc/router/, (2) uses Prisma to query the 'rdv' model via the 'day' model relation, (3) validates input with Zod, (4) registers nothing extra in router.ts (it's already in calendarRouter). Should NOT use REST or fetch directly.",
       "files": []
     },
     {

@@ -9,7 +9,6 @@ import { DataState } from '#/components/DataState/DataState.tsx';
 export function Contacts() {
   const { data: contacts = [], isLoading, isError } = useGetAllContacts();
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [search, setSearch] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
   const selectedContact = contacts.find((c) => c.id === selectedId) ?? null;
@@ -28,23 +27,19 @@ export function Contacts() {
         <ContactList
           contacts={contacts}
           selectedId={selectedId}
-          search={search}
-          onSearchChange={setSearch}
           onSelect={handleSelect}
           isLoading={isLoading}
           isError={isError}
         />
       </div>
 
-      <div className="flex-1 bg-white">
+      <div className="flex-1 bg-white overflow-y-auto">
         <DataState
           isEmpty={!selectedContact}
           emptyIcon={<Users size={40} className="text-[#E7E5E4]" />}
           emptyText="Sélectionnez un contact"
         >
-          {showEditForm && (
-            <ContactEditForm contact={selectedContact!} onCancel={() => setIsEditing(false)} />
-          )}
+          {showEditForm && <ContactEditForm contact={selectedContact!} onCancel={() => setIsEditing(false)} />}
           {showDetail && (
             <ContactDetail
               contact={selectedContact!}

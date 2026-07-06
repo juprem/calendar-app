@@ -9,8 +9,8 @@ This guide covers every layer that must change, in the correct execution order, 
 | Layer | File | What changes |
 |---|---|---|
 | 1. Database schema | `prisma/schema.prisma` | Add `priority` enum + column to `rdv` |
-| 2. Zod model / input validator | `src/integrations/trpc/router/calendarRouter.ts` | Add `priority` to `RdvCreateSchema` |
-| 3. tRPC mutation | `src/integrations/trpc/router/calendarRouter.ts` | Pass `priority` to `prisma.rdv.create` |
+| 2. Zod model / input validator | `src/configurations/trpc/router/calendarRouter.ts` | Add `priority` to `RdvCreateSchema` |
+| 3. tRPC mutation | `src/configurations/trpc/router/calendarRouter.ts` | Pass `priority` to `prisma.rdv.create` |
 | 4. UI form | `src/components/Layout/AddRdv/AddRdv.tsx` | Add Priority `<Select>` field |
 | 5. Display card | `src/components/DailyView/RdvCard/RdvCard.tsx` | Show priority badge |
 
@@ -58,14 +58,14 @@ This regenerates the Prisma client at `generated/prisma/` automatically. No manu
 
 ---
 
-## Step 2 — Zod schema + tRPC mutation (`src/integrations/trpc/router/calendarRouter.ts`)
+## Step 2 — Zod schema + tRPC mutation (`src/configurations/trpc/router/calendarRouter.ts`)
 
 `RdvCreateSchema` lives at the top of this file and acts as both the tRPC input validator and the TypeScript type source.
 
 **Add the import and the new field:**
 
 ```typescript
-// src/integrations/trpc/router/calendarRouter.ts  (top of file)
+// src/configurations/trpc/router/calendarRouter.ts  (top of file)
 import z from 'zod';
 import { publicProcedure } from '../init';
 import { prisma } from '#/db.ts';
@@ -252,7 +252,7 @@ Open `src/components/DailyView/DailyView.tsx` and find where `<RdvCard>` is rend
 ```
 [ ] 1. Edit prisma/schema.prisma — add Priority enum + priority column
 [ ] 2. Run: npx prisma db push
-[ ] 3. Edit src/integrations/trpc/router/calendarRouter.ts — RdvCreateSchema + addRdv handler
+[ ] 3. Edit src/configurations/trpc/router/calendarRouter.ts — RdvCreateSchema + addRdv handler
 [ ] 4. Edit src/components/Layout/AddRdv/AddRdv.tsx — form field
 [ ] 5. Edit src/components/DailyView/RdvCard/RdvCard.tsx — display badge
 [ ] 6. Edit src/components/DailyView/DailyView.tsx — pass priority prop to RdvCard

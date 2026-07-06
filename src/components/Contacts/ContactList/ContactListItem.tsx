@@ -1,5 +1,5 @@
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
-import type { Contact } from '#/models/ContactModel.ts';
+import type { Contact } from '#/domain/contact/models.ts';
 
 interface ContactListItemProps {
   contact: Contact;
