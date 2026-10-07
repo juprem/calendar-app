@@ -1,4 +1,4 @@
-import { Button, Popconfirm } from 'antd';
+import { Button, Popconfirm, Tooltip } from 'antd';
 import { Pencil, Trash2 } from 'lucide-react';
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
 import type { GeneralPractitioner } from '#/domain/generalPractitioner/models.ts';
@@ -21,7 +21,9 @@ export function PractitionerListItem({ practitioner, onEdit }: PractitionerListI
           {formatGeneralPractitionerName(practitioner)}
         </p>
         {practitioner.address && (
-          <p className="text-xs text-[#78716C] truncate">{practitioner.address}</p>
+          <Tooltip title={practitioner.address} placement="bottom">
+            <p className="text-xs text-[#78716C] truncate">{practitioner.address}</p>
+          </Tooltip>
         )}
       </div>
       <div className="flex items-center gap-1 shrink-0">
