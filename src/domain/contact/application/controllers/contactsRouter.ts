@@ -5,13 +5,17 @@ import z from 'zod';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
 import { createContact } from '#/domain/contact/application/mutations/createContact/createContact.ts';
 import { updateContact } from '#/domain/contact/application/mutations/updateContact/updateContact.ts';
-import { ContactConflictError, NotFoundError } from '#/effect/errors.ts';
+import { ContactBirthDateRequiredError, ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { catchDomainErrors } from '#/effect/toTRPCError/toTRPCError.ts';
 import { runContactEffect } from '#/domain/contact/application/controllers/runtime.ts';
 
 const catchContactErrors = catchDomainErrors([
   [(cause): cause is ContactConflictError => cause instanceof ContactConflictError, 'CONFLICT'],
   [(cause): cause is NotFoundError => cause instanceof NotFoundError, 'NOT_FOUND'],
+  [
+    (cause): cause is ContactBirthDateRequiredError => cause instanceof ContactBirthDateRequiredError,
+    'BAD_REQUEST',
+  ],
 ]);
 
 const contactProcedure = protectedProcedure.use(catchContactErrors);

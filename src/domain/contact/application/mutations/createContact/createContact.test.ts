@@ -1,6 +1,6 @@
 import { Effect, Layer, Option } from 'effect';
 import { describe, expect, it, vi } from 'vitest';
-import { ContactConflictError, DbError, NotFoundError } from '#/effect/errors.ts';
+import { ContactBirthDateRequiredError, ContactConflictError, DbError, NotFoundError } from '#/effect/errors.ts';
 import type { CreateContact } from '#/domain/contact/models.ts';
 import { mockContact, mockContactRepository, runAndExpectFailure } from '#/domain/contact/testSupport.ts';
 import { mockGeneralPractitioner, mockGeneralPractitionerRepository } from '#/domain/generalPractitioner/testSupport.ts';
@@ -45,6 +45,21 @@ describe('createContact', () => {
     const error = await runAndExpectFailure(createContact(newContactData).pipe(Effect.provide(layer)));
 
     expect(error).toBeInstanceOf(ContactConflictError);
+  });
+
+  it('fails with a ContactBirthDateRequiredError when no birth date is given and a homonym exists', async () => {
+    const save = vi.fn(() => Effect.succeed(mockContact()));
+    const layer = Layer.merge(
+      mockContactRepository({ findByName: () => Effect.succeed([mockContact()]), save }),
+      mockGeneralPractitionerRepository(),
+    );
+
+    const error = await runAndExpectFailure(
+      createContact({ firstname: 'Marie', lastname: 'Curie', birthDate: undefined }).pipe(Effect.provide(layer)),
+    );
+
+    expect(error).toBeInstanceOf(ContactBirthDateRequiredError);
+    expect(save).not.toHaveBeenCalled();
   });
 
   it('fails with a NotFoundError when the given general practitioner does not exist', async () => {

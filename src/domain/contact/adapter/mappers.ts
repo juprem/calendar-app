@@ -19,7 +19,7 @@ export const toContact = (contactRow: contact): Contact => ({
   generalPractitionerId: contactRow.general_practitioner_id,
 });
 
-export const toContactPrismaInput = (data: CreateContact | Omit<UpdateContact, 'id'>) => ({
+export const toContactPrismaInput = (data: (CreateContact | Omit<UpdateContact, 'id'>) & { birthDate: Date }) => ({
   civility: data.civility,
   firstname: data.firstname,
   lastname: data.lastname,

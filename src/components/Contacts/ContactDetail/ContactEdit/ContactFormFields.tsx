@@ -1,8 +1,10 @@
 import { DatePicker, Form, Input, Select } from 'antd';
-import type { RuleObject } from 'antd/es/form';
+import type { FormInstance, RuleObject } from 'antd/es/form';
 import TextArea from 'antd/es/input/TextArea';
 import { CIVILITY_OPTIONS } from '#/models/ContactModel.ts';
-import { isValidFrenchPhoneNumber } from '#/utils/contactUtils.ts';
+import type { Contact } from '#/domain/contact/models.ts';
+import { useGetAllContacts } from '#/services/contactService.ts';
+import { hasHomonym, isValidFrenchPhoneNumber } from '#/utils/contactUtils.ts';
 import { GeneralPractitionerSelectField } from '#/components/Contacts/ContactDetail/ContactEdit/GeneralPractitionerSelectField/GeneralPractitionerSelectField.tsx';
 import { PhoneNumberField } from '#/components/Contacts/ContactDetail/ContactEdit/PhoneNumberField/PhoneNumberField.tsx';
 
@@ -12,7 +14,30 @@ function validateFrenchPhoneNumber(_rule: RuleObject, phoneNumber: string | unde
     : Promise.reject(new Error('Le numéro doit contenir 9 chiffres'));
 }
 
-export function ContactFormFields() {
+const requireBirthDateForHomonym =
+  (contacts: Contact[], editedContactId: number | undefined) =>
+  ({ getFieldValue }: Pick<FormInstance, 'getFieldValue'>) => ({
+    validator: (_rule: RuleObject, birthDate: unknown): Promise<void> => {
+      const isBirthDateMissing = !birthDate;
+      const isHomonym = hasHomonym(
+        contacts,
+        getFieldValue('firstname') ?? '',
+        getFieldValue('lastname') ?? '',
+        editedContactId,
+      );
+      return isBirthDateMissing && isHomonym
+        ? Promise.reject(new Error('Un contact porte déjà ce nom : la date de naissance est obligatoire'))
+        : Promise.resolve();
+    },
+  });
+
+interface ContactFormFieldsProps {
+  editedContactId?: number;
+}
+
+export function ContactFormFields({ editedContactId }: ContactFormFieldsProps) {
+  const { data: contacts = [] } = useGetAllContacts();
+
   return (
     <>
       <div className="grid grid-cols-[80px_1fr_1fr] gap-3">
@@ -39,7 +64,12 @@ export function ContactFormFields() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        <Form.Item name="birthDate" label="Date de naissance">
+        <Form.Item
+          name="birthDate"
+          label="Date de naissance"
+          dependencies={['firstname', 'lastname']}
+          rules={[requireBirthDateForHomonym(contacts, editedContactId)]}
+        >
           <DatePicker className="w-full" format="DD/MM/YYYY" placeholder="JJ/MM/AAAA" />
         </Form.Item>
         <Form.Item name="birthLocation" label="Lieu de naissance">

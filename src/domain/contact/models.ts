@@ -2,7 +2,7 @@ import z from 'zod';
 // calendar owns Rdv/RdvWithContact; RdvHistoryEntry composes it rather than redeclaring Rdv's fields — see
 // calendar/models.ts, which in turn composes Contact for RdvWithContact. An intentional two-file cycle, types only.
 import type { RdvWithContact } from '#/domain/calendar/models.ts';
-import { toUTCDate } from '#/utils/dateUtils.ts';
+import { truncateToUTCDate } from '#/utils/dateUtils.ts';
 
 export const CIVILITY_VALUES = ['Dr', 'Mr', 'Mme'] as const;
 export type Civility = (typeof CIVILITY_VALUES)[number];
@@ -23,8 +23,8 @@ export interface Contact {
 
 const BirthDateSchema = z.coerce
   .date()
-  .default(() => new Date())
-  .transform((birthDate) => toUTCDate(birthDate.toISOString().slice(0, 10)));
+  .optional()
+  .transform((birthDate) => birthDate && truncateToUTCDate(birthDate));
 
 export const CreateContactSchema = z.object({
   civility: z.enum(CIVILITY_VALUES).optional(),

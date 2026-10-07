@@ -24,6 +24,7 @@ export const mockContactRepository = (overrides: Partial<ContactRepositoryShape>
   Layer.succeed(ContactRepository, {
     findById: () => Effect.succeed(Option.some(mockContact())),
     findByIdentity: () => Effect.succeed(Option.none()),
+    findByName: () => Effect.succeed([]),
     findAll: () => Effect.succeed([]),
     save: () => Effect.succeed(mockContact()),
     update: () => Effect.succeed(mockContact()),

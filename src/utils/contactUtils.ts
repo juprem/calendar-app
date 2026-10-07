@@ -17,6 +17,36 @@ export const formatContactName = (
   return `${prefix}${contact.firstname} ${contact.lastname}`;
 };
 
+export const toContactNameKey = (firstname: string, lastname: string): string =>
+  `${firstname.trim()} ${lastname.trim()}`.toLowerCase();
+
+/** Ids of the contacts sharing their firstname + lastname with at least one other contact (case and spaces ignored). */
+export const findHomonymIds = (contacts: readonly (ContactNameInput & { id: number })[]): Set<number> => {
+  const contactCountByNameKey = new Map<string, number>();
+  for (const contact of contacts) {
+    const nameKey = toContactNameKey(contact.firstname, contact.lastname);
+    contactCountByNameKey.set(nameKey, (contactCountByNameKey.get(nameKey) ?? 0) + 1);
+  }
+  const homonymContacts = contacts.filter(
+    (contact) => (contactCountByNameKey.get(toContactNameKey(contact.firstname, contact.lastname)) ?? 0) > 1,
+  );
+  return new Set(homonymContacts.map((contact) => contact.id));
+};
+
+/** Whether another contact (than `excludingContactId`) already has this firstname + lastname (case and spaces ignored). */
+export const hasHomonym = (
+  contacts: readonly (ContactNameInput & { id: number })[],
+  firstname: string,
+  lastname: string,
+  excludingContactId?: number,
+): boolean => {
+  const nameKey = toContactNameKey(firstname, lastname);
+  return contacts.some(
+    (contact) =>
+      contact.id !== excludingContactId && toContactNameKey(contact.firstname, contact.lastname) === nameKey,
+  );
+};
+
 /**
  * Check whether a firstname/lastname pair matches a search query.
  * Matches on firstname, lastname, or full name, each as a prefix.

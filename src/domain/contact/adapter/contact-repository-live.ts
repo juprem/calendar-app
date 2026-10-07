@@ -18,6 +18,17 @@ export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
         }),
       catch: toDbError,
     }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toContact))),
+  findByName: (firstname, lastname) =>
+    Effect.tryPromise({
+      try: () =>
+        prisma.contact.findMany({
+          where: {
+            firstname: { equals: firstname.trim(), mode: 'insensitive' },
+            lastname: { equals: lastname.trim(), mode: 'insensitive' },
+          },
+        }),
+      catch: toDbError,
+    }).pipe(Effect.map((contacts) => contacts.map(toContact))),
   findAll: () =>
     Effect.tryPromise({ try: () => prisma.contact.findMany({ orderBy: { lastname: 'asc' } }), catch: toDbError }).pipe(
       Effect.map((contacts) => contacts.map(toContact)),

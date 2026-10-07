@@ -1,11 +1,51 @@
 import { Effect, Option } from 'effect';
-import { describe, expect, it, vi } from 'vitest';
-import { ContactConflictError, NotFoundError } from '#/effect/errors.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ContactBirthDateRequiredError, ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { mockContact, mockContactRepository, runAndExpectFailure } from '#/domain/contact/testSupport.ts';
 import { mockGeneralPractitioner, mockGeneralPractitionerRepository } from '#/domain/generalPractitioner/testSupport.ts';
-import { ensureIdentityIsAvailable, ensureGeneralPractitionerExists } from './contactConstraints.ts';
+import { ensureGeneralPractitionerExists, ensureIdentityIsAvailable, resolveBirthDate } from './contactConstraints.ts';
 
 const birthDate = new Date('1867-11-07T00:00:00.000Z');
+
+describe('resolveBirthDate', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('returns the given birth date without querying homonyms', async () => {
+    const findByName = vi.fn(() => Effect.succeed([mockContact({ id: 2 })]));
+    const layer = mockContactRepository({ findByName });
+
+    const result = await Effect.runPromise(
+      resolveBirthDate('Marie', 'Curie', birthDate).pipe(Effect.provide(layer)),
+    );
+
+    expect(result).toEqual(birthDate);
+    expect(findByName).not.toHaveBeenCalled();
+  });
+
+  it('fails with a ContactBirthDateRequiredError when the birth date is missing and a homonym exists', async () => {
+    const layer = mockContactRepository({ findByName: () => Effect.succeed([mockContact({ id: 2 })]) });
+
+    const error = await runAndExpectFailure(
+      resolveBirthDate('Marie', 'Curie', undefined, 1).pipe(Effect.provide(layer)),
+    );
+
+    expect(error).toBeInstanceOf(ContactBirthDateRequiredError);
+  });
+
+  it('defaults to today at UTC midnight when the only homonym is the excluded contact', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-10-07T14:30:00.000Z'));
+    const layer = mockContactRepository({ findByName: () => Effect.succeed([mockContact({ id: 1 })]) });
+
+    const result = await Effect.runPromise(
+      resolveBirthDate('Marie', 'Curie', undefined, 1).pipe(Effect.provide(layer)),
+    );
+
+    expect(result).toEqual(new Date('2026-10-07T00:00:00.000Z'));
+  });
+});
 
 describe('ensureIdentityIsAvailable', () => {
   it('succeeds when no contact has that identity', async () => {

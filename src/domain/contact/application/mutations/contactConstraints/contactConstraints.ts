@@ -1,7 +1,32 @@
 import { Effect, Option } from 'effect';
-import { ContactConflictError, NotFoundError } from '#/effect/errors.ts';
+import { ContactBirthDateRequiredError, ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
+import { truncateToUTCDate } from '#/utils/dateUtils.ts';
 import { GeneralPractitionerRepository } from '#/domain/generalPractitioner/port/general-practitioner-repository.ts';
+
+export const resolveBirthDate = (
+  firstname: string,
+  lastname: string,
+  birthDate: Date | undefined,
+  excludingContactId?: number,
+) =>
+  Effect.gen(function* () {
+    if (birthDate) return birthDate;
+
+    const contactRepository = yield* ContactRepository;
+    const contactsWithSameName = yield* contactRepository.findByName(firstname, lastname);
+    const hasHomonym = contactsWithSameName.some((contact) => contact.id !== excludingContactId);
+
+    if (hasHomonym) {
+      return yield* Effect.fail(
+        new ContactBirthDateRequiredError({
+          message: `Un contact "${firstname} ${lastname}" existe déjà : la date de naissance est obligatoire`,
+        }),
+      );
+    }
+
+    return truncateToUTCDate(new Date());
+  });
 
 export const ensureIdentityIsAvailable = (
   firstname: string,

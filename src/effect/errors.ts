@@ -19,3 +19,7 @@ export class RdvConflictError extends Data.TaggedError('RdvConflictError')<{
 export class ContactConflictError extends Data.TaggedError('ContactConflictError')<{
   readonly message: string;
 }> {}
+
+export class ContactBirthDateRequiredError extends Data.TaggedError('ContactBirthDateRequiredError')<{
+  readonly message: string;
+}> {}

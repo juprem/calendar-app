@@ -58,7 +58,7 @@ export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
       </div>
 
       <Form form={form} layout="vertical" initialValues={initialValues} onFinish={onFinish}>
-        <ContactFormFields />
+        <ContactFormFields editedContactId={contact.id} />
         <div className="flex justify-end gap-2">
           <Button onClick={onCancel}>Annuler</Button>
           <Button type="primary" htmlType="submit" loading={isPending}>

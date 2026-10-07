@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  findHomonymIds,
   formatPhoneNumber,
+  hasHomonym,
   frenchNationalToE164,
   isValidFrenchPhoneNumber,
   toFrenchNationalDisplay,
@@ -117,5 +119,37 @@ describe('isValidFrenchPhoneNumber', () => {
 
   it('rejects the empty-prefix-only state (user typed and deleted a leading 0)', () => {
     expect(isValidFrenchPhoneNumber('+33')).toBe(false);
+  });
+});
+
+describe('findHomonymIds', () => {
+  it('returns the ids of contacts sharing a name, ignoring case and surrounding spaces', () => {
+    const contacts = [
+      { id: 1, firstname: 'Marie', lastname: 'Curie' },
+      { id: 2, firstname: ' marie', lastname: 'CURIE ' },
+      { id: 3, firstname: 'Pierre', lastname: 'Curie' },
+    ];
+
+    expect(findHomonymIds(contacts)).toEqual(new Set([1, 2]));
+  });
+
+  it('returns an empty set when every name is unique', () => {
+    expect(findHomonymIds([{ id: 1, firstname: 'Marie', lastname: 'Curie' }])).toEqual(new Set());
+  });
+});
+
+describe('hasHomonym', () => {
+  const contacts = [{ id: 1, firstname: 'Marie', lastname: 'Curie' }];
+
+  it('detects an existing contact with the same name, ignoring case and spaces', () => {
+    expect(hasHomonym(contacts, ' marie ', 'curie')).toBe(true);
+  });
+
+  it('ignores the excluded contact', () => {
+    expect(hasHomonym(contacts, 'Marie', 'Curie', 1)).toBe(false);
+  });
+
+  it('returns false for a different name', () => {
+    expect(hasHomonym(contacts, 'Pierre', 'Curie')).toBe(false);
   });
 });

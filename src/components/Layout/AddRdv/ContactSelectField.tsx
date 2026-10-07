@@ -1,6 +1,7 @@
 import { Form, Select } from 'antd';
+import dayjs from 'dayjs';
 import { useGetAllContacts } from '#/services/contactService.ts';
-import { formatContactName } from '#/utils/contactUtils.ts';
+import { findHomonymIds, formatContactName } from '#/utils/contactUtils.ts';
 
 interface ContactSelectFieldProps {
   onContactSelect: (fullName: string) => void;
@@ -8,16 +9,18 @@ interface ContactSelectFieldProps {
 
 export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps) {
   const { data: contacts = [] } = useGetAllContacts();
+  const homonymIds = findHomonymIds(contacts);
 
-  const options = contacts.map((c) => ({
-    value: c.id,
-    label: formatContactName(c),
+  const options = contacts.map((contact) => ({
+    value: contact.id,
+    label: homonymIds.has(contact.id)
+      ? `${formatContactName(contact)} · ${dayjs(contact.birthDate).format('DD/MM/YYYY')}`
+      : formatContactName(contact),
   }));
 
-  const handleChange = (id: number | undefined) => {
-    if (!id) return;
-    const option = options.find((o) => o.value === id);
-    if (option) onContactSelect(option.label);
+  const handleChange = (contactId: number | undefined) => {
+    const selectedContact = contacts.find((contact) => contact.id === contactId);
+    if (selectedContact) onContactSelect(formatContactName(selectedContact));
   };
 
   return (
@@ -26,8 +29,8 @@ export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps)
         placeholder="Sélectionner un contact"
         allowClear
         showSearch
-        filterOption={(input, opt) =>
-          String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
+        filterOption={(searchInput, option) =>
+          String(option?.label ?? '').toLowerCase().includes(searchInput.toLowerCase())
         }
         options={options}
         onChange={handleChange}
