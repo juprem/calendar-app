@@ -1,9 +1,9 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import superjson from 'superjson'
-import type { auth } from '@clerk/tanstack-react-start/server'
+import type { AuthState } from '#/domain/auth/models.ts'
 
 export type TRPCContext = {
-  auth: Awaited<ReturnType<typeof auth>>
+  auth: AuthState
 }
 
 const t = initTRPC.context<TRPCContext>().create({
@@ -14,7 +14,7 @@ const authedMiddleware = t.middleware(({ ctx, next }) => {
   if (!ctx.auth.isAuthenticated) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })
   }
-  if (!ctx.auth.has({ role: 'calendar_access' })) {
+  if (!ctx.auth.hasCalendarAccess) {
     throw new TRPCError({ code: 'FORBIDDEN' })
   }
   return next({ ctx })

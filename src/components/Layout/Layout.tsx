@@ -1,11 +1,11 @@
 import { type ReactNode, useState } from 'react';
 import { Button } from 'antd';
 import { CalendarDays, Plus } from 'lucide-react';
-import { Show } from '@clerk/tanstack-react-start';
 import { AddRdv } from '#/components/Layout/AddRdv/AddRdv.tsx';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { AddContact } from '#/components/Layout/AddContact/AddContact.tsx';
 import { CalendarFilterBar } from '#/components/Layout/CalendarFilterBar.tsx';
+import { SignedInOnly } from '#/components/Layout/SignedInOnly.tsx';
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex flex-col h-screen bg-[#FFFBF5]">
-      <Show when="signed-in">
+      <SignedInOnly>
         <header className="flex items-center justify-between px-6 py-2.5 border-b border-[#E7E5E4] bg-white sticky top-0 z-50">
           <div className="flex items-center gap-2">
             <Link
@@ -70,7 +70,7 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </header>
         <AddRdv open={open} onClose={() => setOpen(false)} />
-      </Show>
+      </SignedInOnly>
       <div className="flex-1 min-h-0">{children}</div>
     </div>
   );

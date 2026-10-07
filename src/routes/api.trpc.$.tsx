@@ -2,10 +2,10 @@ import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import { trpcRouter } from '#/configurations/trpc/router/router.ts';
 import { requireCalendarAccess } from '#/server/auth.ts';
-import { auth } from '@clerk/tanstack-react-start/server';
+import { getCurrentAuthState } from '#/domain/auth/runtime.ts';
 
 async function handler({ request }: { request: Request }) {
-  const authState = await auth()
+  const authState = await getCurrentAuthState()
 
   const response = await fetchRequestHandler({
     req: request,

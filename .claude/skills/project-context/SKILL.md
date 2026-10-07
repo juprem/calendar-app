@@ -40,7 +40,7 @@ This is a **professional scheduling tool** for managing appointments (RDV = rend
 
 ## Architecture
 
-Every business domain (`calendar`, `contact`, `generalPractitioner`) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the Clerk access check) remains there, unrelated to this pattern.
+Every business domain (`calendar`, `contact`, `generalPractitioner`, plus `auth` — a port over Clerk, see Authentication) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the `requireCalendarAccess` server fn, which reads `getCurrentAuthState()` from `src/domain/auth/runtime.ts`) remains there, unrelated to this pattern.
 
 ```
 Browser
@@ -81,7 +81,7 @@ All Effect plumbing — including domain-specific typed errors — lives in one 
 | `src/domain/<name>/` | A self-contained hexagonal module per business domain (`calendar`, `contact`, `generalPractitioner`) — `models.ts`, `testSupport.ts` (or `adapter/*-repository-mock.ts`), `port/`, `adapter/`, `application/{queries,mutations,controllers}/` — see Architecture above. No domain has its own `errors.ts`; all error classes (shared and domain-specific alike) live in `src/effect/errors.ts` |
 | `src/effect/` | Effect kernel shared by every domain module: `errors.ts` (every error class in the app, shared or domain-specific), `runEffect.ts`, `testSupport.ts` |
 | `src/configurations/trpc/` | tRPC init (`init.ts` — exports `protectedProcedure` and the raw `middleware` builder), React hooks, and the root router (`router/router.ts`, which just merges each domain's controller router) |
-| `src/server/auth.ts` | Clerk access check (`requireCalendarAccess`) — the only thing left in `src/server/` |
+| `src/server/auth.ts` | Route access check (`requireCalendarAccess`, via the `auth` domain port) — the only thing left in `src/server/` |
 | `src/store/` | Zustand stores (client-only UI state) |
 | `src/models/` | Frontend-only display/option/style artifacts, one file per entity (e.g. `CalendarModel.ts`, `ContactModel.ts`) — importing types/value-lists from the owning domain's `models.ts` where needed. Entity types and create/update Zod schemas live in `src/domain/<name>/models.ts`, not here |
 | `src/utils/` | Cross-feature pure helpers (`dateUtils.ts`, `timeUtils.ts`, `contactUtils.ts`) |
@@ -103,6 +103,7 @@ src/components/
 ├── Layout/
 │   ├── Layout.tsx                       — app shell + header nav
 │   ├── CalendarFilterBar.tsx
+│   ├── SignedInOnly.tsx                 — header gate: Clerk <Show when="signed-in">, bypassed when isMockAuth
 │   ├── AddContact/
 │   │   ├── AddContact.tsx               — trigger button
 │   │   └── AddContactModal.tsx
@@ -198,6 +199,8 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 - Provider: Clerk, wired in `src/routes/__root.tsx`; `src/start.ts` registers `clerkMiddleware()` + CSRF middleware at the request level
 - Gate: `src/routes/_protected.tsx` — a layout route whose `beforeLoad` calls `requireCalendarAccess()`
 - Access check: `src/server/auth.ts` (`requireCalendarAccess`, a `createServerFn`) — redirects to `/sign-in` if unauthenticated, `/forbidden` if missing the `calendar_access` Clerk role
+- Auth port (ported from anime-pwa): `src/domain/auth/` — `models.ts` (`AuthState { isAuthenticated, hasCalendarAccess }`), `port/auth-provider.ts` (`AuthProvider` Context.Tag), `adapter/auth-provider-live.ts` (the **only** server-side Clerk `auth()` import; fails closed to signed-out on any error), `adapter/auth-provider-mock.ts` (`mockAuthProvider(overrides)`, defaults to signed in with access), `application/getAuthState.ts` (+ test), `runtime.ts` (`getCurrentAuthState()`). The tRPC context (`api.trpc.$.tsx`) is `{ auth: AuthState }` and `init.ts`'s middleware checks `isAuthenticated` / `hasCalendarAccess`
+- **Mocking auth locally**: set `VITE_MOCK_AUTH=true` in the gitignored `.env`. `src/domain/auth/isMockAuth.ts` (`import.meta.env.DEV && VITE_MOCK_AUTH === 'true'`, so always `false` in `vite build`) makes `runtime.ts` use the mock and skip the dynamic import of the Clerk adapter, and makes `src/components/Layout/SignedInOnly.tsx` render the header without Clerk's `<Show when="signed-in">`. `npm run dev` is then fully usable without signing in. **The dev server talks to the real Neon DB from `.env`** — don't create test data there
 - Only users with the `calendar_access` role can reach any route nested under `_protected`
 
 ### tRPC conventions
@@ -264,7 +267,7 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - `id` (PK), `firstname`, `lastname` (VarChar)
 - `email`, `phone_number` (optional VarChar), `notes` (optional text)
 - `civility` (optional VarChar — `Dr` / `Mr` / `Mme`, see `CIVILITY_OPTIONS` in `ContactModel.ts`)
-- `birth_date` (`@db.Date`, required, no DB default — `BirthDateSchema` in `domain/contact/models.ts` defaults it to today and truncates to UTC midnight; forms send `dayjsToUTCDate(...)`), `birth_location`, `address` (optional VarChar)
+- `birth_date` (`@db.Date`, required, no DB default — `BirthDateSchema` in `domain/contact/models.ts` only truncates to UTC midnight; when absent, `resolveBirthDate` in `contactConstraints.ts` fails with `ContactBirthDateRequiredError` (→ `BAD_REQUEST`) if a homonym exists (`ContactRepository.findByName`, case-insensitive), else defaults to today; forms send `dayjsToUTCDate(...)` and `ContactFormFields` mirrors the homonym rule client-side via `hasHomonym`), `birth_location`, `address` (optional VarChar)
 - `general_practitioner_id` (optional FK → `general_practitioner`, `onDelete: NoAction`)
 - Unique constraint `fullname_birthdate` on `(firstname, lastname, birth_date)` — checked in `ensureIdentityIsAvailable` (→ `ContactConflictError`) via `ContactRepository.findByIdentity`
 
@@ -294,7 +297,7 @@ After any schema change: `npx prisma db push`
 | Contact ↔ appointment history | ✅ Done | `ContactRdvList.tsx`, `src/domain/contact/application/queries/getContactRdv.ts` |
 | General practitioners (list/search/create/edit/delete) | ✅ Done | `src/components/Contacts/PractitionerList/`, `src/domain/generalPractitioner/application/controllers/generalPractitionerRouter.ts` |
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |
-| Auth (Clerk) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts` |
+| Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
 
 ---
