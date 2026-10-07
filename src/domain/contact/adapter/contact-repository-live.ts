@@ -10,9 +10,12 @@ export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
       Effect.map(Option.fromNullable),
       Effect.map(Option.map(toContact)),
     ),
-  findByFullName: (firstname, lastname) =>
+  findByIdentity: (firstname, lastname, birthDate) =>
     Effect.tryPromise({
-      try: () => prisma.contact.findUnique({ where: { firstname_lastname: { firstname, lastname } } }),
+      try: () =>
+        prisma.contact.findUnique({
+          where: { firstname_lastname_birth_date: { firstname, lastname, birth_date: birthDate } },
+        }),
       catch: toDbError,
     }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toContact))),
   findAll: () =>
@@ -32,11 +35,6 @@ export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
     Effect.tryPromise({ try: () => prisma.contact.delete({ where: { id } }), catch: toDbError }).pipe(
       Effect.map(toContact),
     ),
-  bulkSave: (contacts) =>
-    Effect.tryPromise({
-      try: () => prisma.contact.createMany({ data: contacts.map(toContactPrismaInput), skipDuplicates: true }),
-      catch: toDbError,
-    }),
   findAppointmentHistory: (contactId) =>
     Effect.tryPromise({
       try: () =>

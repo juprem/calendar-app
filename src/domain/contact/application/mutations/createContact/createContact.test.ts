@@ -9,6 +9,7 @@ import { createContact } from './createContact.ts';
 const newContactData: CreateContact = {
   firstname: 'Marie',
   lastname: 'Curie',
+  birthDate: new Date('1867-11-07T00:00:00.000Z'),
 };
 
 describe('createContact', () => {
@@ -35,9 +36,9 @@ describe('createContact', () => {
     expect(error).toBe(dbError);
   });
 
-  it('fails with a ContactConflictError when a contact with the same fullname already exists', async () => {
+  it('fails with a ContactConflictError when a contact with the same identity already exists', async () => {
     const layer = Layer.merge(
-      mockContactRepository({ findByFullName: () => Effect.succeed(Option.some(mockContact())) }),
+      mockContactRepository({ findByIdentity: () => Effect.succeed(Option.some(mockContact())) }),
       mockGeneralPractitionerRepository(),
     );
 

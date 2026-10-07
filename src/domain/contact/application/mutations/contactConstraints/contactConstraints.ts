@@ -3,14 +3,22 @@ import { ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
 import { GeneralPractitionerRepository } from '#/domain/generalPractitioner/port/general-practitioner-repository.ts';
 
-export const ensureFullNameIsAvailable = (firstname: string, lastname: string, excludingContactId?: number) =>
+export const ensureIdentityIsAvailable = (
+  firstname: string,
+  lastname: string,
+  birthDate: Date,
+  excludingContactId?: number,
+) =>
   Effect.gen(function* () {
     const contactRepository = yield* ContactRepository;
-    const contactWithSameFullName = yield* contactRepository.findByFullName(firstname, lastname);
+    const contactWithSameIdentity = yield* contactRepository.findByIdentity(firstname, lastname, birthDate);
 
-    if (Option.isSome(contactWithSameFullName) && contactWithSameFullName.value.id !== excludingContactId) {
+    if (Option.isSome(contactWithSameIdentity) && contactWithSameIdentity.value.id !== excludingContactId) {
+      const formattedBirthDate = birthDate.toLocaleDateString('fr-FR', { timeZone: 'UTC' });
       return yield* Effect.fail(
-        new ContactConflictError({ message: `Un contact "${firstname} ${lastname}" existe déjà` }),
+        new ContactConflictError({
+          message: `Un contact "${firstname} ${lastname}" né le ${formattedBirthDate} existe déjà`,
+        }),
       );
     }
   });

@@ -9,6 +9,7 @@ import { updateContact } from './updateContact.ts';
 const updateData: Omit<UpdateContact, 'id'> = {
   firstname: 'Marie',
   lastname: 'Curie-Updated',
+  birthDate: new Date('1867-11-07T00:00:00.000Z'),
 };
 
 describe('updateContact', () => {
@@ -46,10 +47,10 @@ describe('updateContact', () => {
     expect(error).toBe(dbError);
   });
 
-  it('fails with a ContactConflictError when another contact already has the same fullname', async () => {
+  it('fails with a ContactConflictError when another contact already has the same identity', async () => {
     const layer = Layer.merge(
       mockContactRepository({
-        findByFullName: () => Effect.succeed(Option.some(mockContact({ id: 99 }))),
+        findByIdentity: () => Effect.succeed(Option.some(mockContact({ id: 99 }))),
       }),
       mockGeneralPractitionerRepository(),
     );
@@ -59,11 +60,11 @@ describe('updateContact', () => {
     expect(error).toBeInstanceOf(ContactConflictError);
   });
 
-  it('allows keeping its own fullname unchanged', async () => {
+  it('allows keeping its own identity unchanged', async () => {
     const updatedContact = mockContact({ id: 7, ...updateData });
     const layer = Layer.merge(
       mockContactRepository({
-        findByFullName: () => Effect.succeed(Option.some(mockContact({ id: 7 }))),
+        findByIdentity: () => Effect.succeed(Option.some(mockContact({ id: 7 }))),
         update: () => Effect.succeed(updatedContact),
       }),
       mockGeneralPractitionerRepository(),

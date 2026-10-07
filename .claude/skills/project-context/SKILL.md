@@ -106,16 +106,12 @@ src/components/
 │   ├── AddContact/
 │   │   ├── AddContact.tsx               — trigger button
 │   │   └── AddContactModal.tsx
-│   ├── AddRdv/
-│   │   ├── AddRdv.tsx                   — trigger button
-│   │   ├── ContactSelectField.tsx
-│   │   ├── EditRdvModal.tsx
-│   │   ├── RdvDetailModal.tsx
-│   │   └── RdvEditForm.tsx
-│   └── ImportContacts/
-│       ├── ImportContacts.tsx           — trigger button
-│       ├── ImportContactsModal.tsx
-│       └── xlsxUtils.ts                 — parses an uploaded .xlsx into CreateContact[] for bulkAddContacts
+│   └── AddRdv/
+│       ├── AddRdv.tsx                   — trigger button
+│       ├── ContactSelectField.tsx
+│       ├── EditRdvModal.tsx
+│       ├── RdvDetailModal.tsx
+│       └── RdvEditForm.tsx
 ├── DailyView/
 │   ├── DailyView.tsx
 │   ├── DailyViewWrapper.tsx             — fetches via calendarService, passes data to DailyView (Wrapper+View pattern)
@@ -229,7 +225,6 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `contacts` | `updateContact` | `UpdateContactSchema` | Update an existing contact |
 | `contacts` | `deleteContact` | `number` | Delete a contact |
 | `contacts` | `listRdvByContact` | `number` | Fetch a contact's appointment history |
-| `contacts` | `bulkAddContacts` | `CreateContactSchema[]` | Bulk-import contacts (skips duplicates), powers `ImportContacts` |
 | `generalPractitioner` | `listAll` | — | Fetch all general practitioners |
 | `generalPractitioner` | `add` | `CreateGeneralPractitionerSchema` | Create a practitioner |
 | `generalPractitioner` | `update` | `UpdateGeneralPractitionerSchema` | Update a practitioner |
@@ -269,9 +264,9 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - `id` (PK), `firstname`, `lastname` (VarChar)
 - `email`, `phone_number` (optional VarChar), `notes` (optional text)
 - `civility` (optional VarChar — `Dr` / `Mr` / `Mme`, see `CIVILITY_OPTIONS` in `ContactModel.ts`)
-- `birth_date` (Timestamp, defaults to now), `birth_location`, `address` (optional VarChar)
+- `birth_date` (`@db.Date`, required, no DB default — `BirthDateSchema` in `domain/contact/models.ts` defaults it to today and truncates to UTC midnight; forms send `dayjsToUTCDate(...)`), `birth_location`, `address` (optional VarChar)
 - `general_practitioner_id` (optional FK → `general_practitioner`, `onDelete: NoAction`)
-- Unique constraint on `(firstname, lastname)`
+- Unique constraint `fullname_birthdate` on `(firstname, lastname, birth_date)` — checked in `ensureIdentityIsAvailable` (→ `ContactConflictError`) via `ContactRepository.findByIdentity`
 
 **Naming**: every Prisma column above is snake_case — that's the actual Postgres column name, unchanged on purpose (no migration). Every TS-level model (`Rdv`, `Contact`, and their create/update DTOs in each domain's `models.ts`) is camelCase (`dayId`, `startHour`, `phoneNumber`, `generalPractitionerId`, …). `adapter/mappers.ts` is the only place that bridges the two — `toRdv`/`toContact` map a Prisma row to the camelCase entity; `toRdvPrismaInput`/`toContactPrismaInput` map a camelCase DTO back to Prisma's input shape for `create`/`update`. Nothing outside `adapter/` (or a `where`/`orderBy` clause querying by an untranslated Prisma field, e.g. `day_id`/`start_hour` in a live adapter's own Prisma call) should ever see a snake_case field name.
 
@@ -296,7 +291,6 @@ After any schema change: `npx prisma db push`
 | Create/update/delete appointment (RDV) | ✅ Done | `src/components/Layout/AddRdv/`, `src/domain/calendar/application/controllers/calendarRouter.ts`, `application/mutations/{scheduleRdv,updateRdv,deleteRdv}.ts` (conflict detection via `RdvConflictError`, thrown from `scheduleRdv.ts`) |
 | Link an RDV to a contact | ✅ Done | `rdv.contact_id`, `ContactSelectField.tsx` |
 | Create/update/delete contact | ✅ Done | `src/components/Contacts/`, `src/domain/contact/application/controllers/contactsRouter.ts` |
-| Bulk-import contacts from Excel | ✅ Done | `src/components/Layout/ImportContacts/`, `src/domain/contact/application/mutations/bulkCreateContacts.ts` |
 | Contact ↔ appointment history | ✅ Done | `ContactRdvList.tsx`, `src/domain/contact/application/queries/getContactRdv.ts` |
 | General practitioners (list/search/create/edit/delete) | ✅ Done | `src/components/Contacts/PractitionerList/`, `src/domain/generalPractitioner/application/controllers/generalPractitionerRouter.ts` |
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |

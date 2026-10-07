@@ -46,12 +46,4 @@ export const contactsRouter = {
       }),
     ),
   ),
-  bulkAddContacts: contactProcedure.input(z.array(CreateContactSchema)).mutation(({ input }) =>
-    runContactEffect(
-      Effect.gen(function* () {
-        const contactRepository = yield* ContactRepository;
-        return yield* contactRepository.bulkSave(input);
-      }),
-    ),
-  ),
 };

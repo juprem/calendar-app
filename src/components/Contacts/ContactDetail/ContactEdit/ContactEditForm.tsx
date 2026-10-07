@@ -5,6 +5,7 @@ import { toValidCivility } from '#/models/ContactModel.ts';
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
 import { ContactFormFields } from '#/components/Contacts/ContactDetail/ContactEdit/ContactFormFields.tsx';
 import { useUpdateContact } from '#/services/contactService.ts';
+import { dayjsToUTCDate } from '#/utils/dateUtils.ts';
 
 interface ContactEditFormProps {
   contact: Contact;
@@ -37,7 +38,7 @@ export function ContactEditForm({ contact, onCancel }: ContactEditFormProps) {
       {
         id: contact.id,
         ...values,
-        birthDate: values.birthDate?.toDate() ?? null,
+        birthDate: values.birthDate ? dayjsToUTCDate(values.birthDate) : undefined,
         email: values.email || null,
         phoneNumber: values.phoneNumber || null,
         notes: values.notes || null,

@@ -47,7 +47,7 @@ model contact {
   email                   String?               @db.VarChar
   phone_number            String?               @db.VarChar
   notes                   String?
-  birth_date              DateTime              @default(now()) @db.Timestamp(6)
+  birth_date              DateTime              @db.Date
   birth_location          String?               @db.VarChar
   address                 String?               @db.VarChar
   civility                String?               @db.VarChar
@@ -55,5 +55,5 @@ model contact {
   general_practitioner    general_practitioner? @relation(fields: [general_practitioner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rdv                     rdv[]
 
-  @@unique([firstname, lastname], map: "fullname")
+  @@unique([firstname, lastname, birth_date], map: "fullname_birthdate")
 }

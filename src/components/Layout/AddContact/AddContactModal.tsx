@@ -1,6 +1,7 @@
 import { Button, Form, Modal } from 'antd';
 import { useCreateContact } from '#/services/contactService.ts';
 import type { CreateContact } from '#/domain/contact/models.ts';
+import { dayjsToUTCDate } from '#/utils/dateUtils.ts';
 import type { Dayjs } from 'dayjs';
 import { ContactFormFields } from '#/components/Contacts/ContactDetail/ContactEdit/ContactFormFields.tsx';
 
@@ -21,7 +22,7 @@ export function AddContactModal({ open, closeModal }: AddContactModalProps) {
 
   const onFinish = (values: ContactFormValues) => {
     mutate(
-      { ...values, birthDate: values.birthDate?.toDate() },
+      { ...values, birthDate: values.birthDate ? dayjsToUTCDate(values.birthDate) : undefined },
       {
         onSuccess: () => {
           form.resetFields();

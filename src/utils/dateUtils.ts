@@ -14,6 +14,9 @@ export type MonthBounds = Readonly<{ start: Dayjs; end: Dayjs }>;
 export const toUTCDate = (isoDate: string): Date =>
   new Date(`${isoDate}T00:00:00.000Z`);
 
+/** Convert a Dayjs to a UTC midnight Date object on the same calendar day. */
+export const dayjsToUTCDate = (day: Dayjs): Date => toUTCDate(day.format(ISO_DATE));
+
 /** Return the Monday of the ISO week containing `day`. */
 export const getMondayOf = (day: Dayjs): Dayjs => {
   const dow = day.day();

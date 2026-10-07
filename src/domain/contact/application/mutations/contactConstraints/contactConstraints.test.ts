@@ -3,22 +3,24 @@ import { describe, expect, it, vi } from 'vitest';
 import { ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { mockContact, mockContactRepository, runAndExpectFailure } from '#/domain/contact/testSupport.ts';
 import { mockGeneralPractitioner, mockGeneralPractitionerRepository } from '#/domain/generalPractitioner/testSupport.ts';
-import { ensureFullNameIsAvailable, ensureGeneralPractitionerExists } from './contactConstraints.ts';
+import { ensureIdentityIsAvailable, ensureGeneralPractitionerExists } from './contactConstraints.ts';
 
-describe('ensureFullNameIsAvailable', () => {
-  it('succeeds when no contact has that fullname', async () => {
-    const layer = mockContactRepository({ findByFullName: () => Effect.succeed(Option.none()) });
+const birthDate = new Date('1867-11-07T00:00:00.000Z');
 
-    await Effect.runPromise(ensureFullNameIsAvailable('Marie', 'Curie').pipe(Effect.provide(layer)));
+describe('ensureIdentityIsAvailable', () => {
+  it('succeeds when no contact has that identity', async () => {
+    const layer = mockContactRepository({ findByIdentity: () => Effect.succeed(Option.none()) });
+
+    await Effect.runPromise(ensureIdentityIsAvailable('Marie', 'Curie', birthDate).pipe(Effect.provide(layer)));
   });
 
-  it('fails with a ContactConflictError when another contact already has that fullname', async () => {
+  it('fails with a ContactConflictError when another contact already has that identity', async () => {
     const layer = mockContactRepository({
-      findByFullName: () => Effect.succeed(Option.some(mockContact({ id: 2 }))),
+      findByIdentity: () => Effect.succeed(Option.some(mockContact({ id: 2 }))),
     });
 
     const error = await runAndExpectFailure(
-      ensureFullNameIsAvailable('Marie', 'Curie', 1).pipe(Effect.provide(layer)),
+      ensureIdentityIsAvailable('Marie', 'Curie', birthDate, 1).pipe(Effect.provide(layer)),
     );
 
     expect(error).toBeInstanceOf(ContactConflictError);
@@ -26,10 +28,10 @@ describe('ensureFullNameIsAvailable', () => {
 
   it('succeeds when the matching contact is the excluded one', async () => {
     const layer = mockContactRepository({
-      findByFullName: () => Effect.succeed(Option.some(mockContact({ id: 1 }))),
+      findByIdentity: () => Effect.succeed(Option.some(mockContact({ id: 1 }))),
     });
 
-    await Effect.runPromise(ensureFullNameIsAvailable('Marie', 'Curie', 1).pipe(Effect.provide(layer)));
+    await Effect.runPromise(ensureIdentityIsAvailable('Marie', 'Curie', birthDate, 1).pipe(Effect.provide(layer)));
   });
 });
 

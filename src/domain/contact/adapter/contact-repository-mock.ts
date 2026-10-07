@@ -23,12 +23,11 @@ type ContactRepositoryShape = Context.Tag.Service<typeof ContactRepository>;
 export const mockContactRepository = (overrides: Partial<ContactRepositoryShape> = {}) =>
   Layer.succeed(ContactRepository, {
     findById: () => Effect.succeed(Option.some(mockContact())),
-    findByFullName: () => Effect.succeed(Option.none()),
+    findByIdentity: () => Effect.succeed(Option.none()),
     findAll: () => Effect.succeed([]),
     save: () => Effect.succeed(mockContact()),
     update: () => Effect.succeed(mockContact()),
     delete: () => Effect.succeed(mockContact()),
-    bulkSave: () => Effect.succeed({ count: 0 }),
     findAppointmentHistory: () => Effect.succeed([]),
     ...overrides,
   });

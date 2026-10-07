@@ -53,17 +53,3 @@ export const useDeleteContact = () => {
     onError: (error) => notifyErrorService(error, 'Erreur lors de la suppression du contact'),
   });
 };
-
-export const useBulkCreateContacts = () => {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    ...trpc.contacts.bulkAddContacts.mutationOptions(),
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: trpc.contacts.listAll.queryKey() });
-      notifySuccess(`${result.count} contact(s) importé(s)`);
-    },
-    onError: (error) => notifyErrorService(error, "Erreur lors de l'importation des contacts"),
-  });
-};

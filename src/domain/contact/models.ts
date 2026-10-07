@@ -2,6 +2,7 @@ import z from 'zod';
 // calendar owns Rdv/RdvWithContact; RdvHistoryEntry composes it rather than redeclaring Rdv's fields — see
 // calendar/models.ts, which in turn composes Contact for RdvWithContact. An intentional two-file cycle, types only.
 import type { RdvWithContact } from '#/domain/calendar/models.ts';
+import { toUTCDate } from '#/utils/dateUtils.ts';
 
 export const CIVILITY_VALUES = ['Dr', 'Mr', 'Mme'] as const;
 export type Civility = (typeof CIVILITY_VALUES)[number];
@@ -20,6 +21,11 @@ export interface Contact {
   readonly generalPractitionerId: number | null;
 }
 
+const BirthDateSchema = z.coerce
+  .date()
+  .default(() => new Date())
+  .transform((birthDate) => toUTCDate(birthDate.toISOString().slice(0, 10)));
+
 export const CreateContactSchema = z.object({
   civility: z.enum(CIVILITY_VALUES).optional(),
   firstname: z.string(),
@@ -27,7 +33,7 @@ export const CreateContactSchema = z.object({
   phoneNumber: z.e164().optional(),
   email: z.string().optional(),
   notes: z.string().optional(),
-  birthDate: z.coerce.date().optional(),
+  birthDate: BirthDateSchema,
   birthLocation: z.string().optional(),
   address: z.string().optional(),
   generalPractitionerId: z.number().optional().nullable(),
@@ -43,7 +49,7 @@ export const UpdateContactSchema = z.object({
   phoneNumber: z.e164().optional().nullable(),
   email: z.email().optional().nullable(),
   notes: z.string().optional().nullable(),
-  birthDate: z.coerce.date().optional(),
+  birthDate: BirthDateSchema,
   birthLocation: z.string().optional().nullable(),
   address: z.string().optional().nullable(),
   generalPractitionerId: z.number().optional().nullable(),
@@ -54,7 +60,3 @@ export type UpdateContact = z.infer<typeof UpdateContactSchema>;
 export type RdvHistoryEntry = RdvWithContact & {
   readonly day: { readonly date: Date };
 };
-
-export interface BulkCreateResult {
-  readonly count: number;
-}
