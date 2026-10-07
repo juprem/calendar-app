@@ -15,6 +15,24 @@ model day {
 }
 
 model rdv {
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+  id               Int      @id @default(autoincrement())
+  day_id           Int
+  start_hour       String   @db.VarChar
+  end_hour         String
+  name             String   @db.VarChar
+  rdv_type         String?  @db.VarChar
+  is_confirmed     Boolean?
+  additional_infos String?  @db.VarChar
+  confirmation_date DateTime? @db.Timestamp(6)
+  confirmation_mode String?  @db.VarChar
+  contact_id       Int?
+  contact          contact? @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
+  day              day      @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
+=======
+>>>>>>> 95dbc92 (feat: mockable auth port, ported from anime-pwa)
   id                Int         @id @default(autoincrement())
   day_id            Int
   start_hour        String      @db.VarChar
@@ -28,7 +46,12 @@ model rdv {
   contact_id        Int?
   contact           contact?    @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
   day               day         @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
+<<<<<<< HEAD
   email_log         email_log[]
+=======
+  email_log         email_log?
+>>>>>>> Stashed changes
+>>>>>>> 95dbc92 (feat: mockable auth port, ported from anime-pwa)
 
   @@index([day_id], map: "index_day")
 }
@@ -59,6 +82,11 @@ model contact {
 
   @@unique([firstname, lastname, birth_date], map: "fullname_birthdate")
 }
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> 95dbc92 (feat: mockable auth port, ported from anime-pwa)
 
 model export_log {
   id          Int      @id @default(autoincrement())
@@ -67,7 +95,11 @@ model export_log {
 
 model email_log {
   id          Int      @id @default(autoincrement())
+<<<<<<< HEAD
   rdv_id      Int
+=======
+  rdv_id      Int      @unique
+>>>>>>> 95dbc92 (feat: mockable auth port, ported from anime-pwa)
   contact_id  Int
   target_date DateTime @db.Date
   recipient   String?  @db.VarChar
@@ -76,6 +108,11 @@ model email_log {
   sent_at     DateTime @db.Timestamptz(6)
   rdv         rdv      @relation(fields: [rdv_id], references: [id], onDelete: Cascade)
   contact     contact  @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+<<<<<<< HEAD
 
   @@unique([rdv_id, target_date])
 }
+=======
+}
+>>>>>>> Stashed changes
+>>>>>>> 95dbc92 (feat: mockable auth port, ported from anime-pwa)

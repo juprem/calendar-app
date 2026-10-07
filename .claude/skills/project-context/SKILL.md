@@ -63,7 +63,7 @@ A graphify knowledge graph of `src/` lives in `graphify-out/` (AST-only, no LLM 
 
 ## Architecture
 
-Every business domain (`calendar`, `contact`, `generalPractitioner`, `dataTransfer`, plus `auth` — a port over Clerk, see Authentication) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the `requireCalendarAccess` server fn, which reads `getCurrentAuthState()` from `src/domain/auth/runtime.ts`) remains there, unrelated to this pattern.
+Every business domain (`calendar`, `contact`, `generalPractitioner`, plus `auth` — a port over Clerk, see Authentication) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the `requireCalendarAccess` server fn, which reads `getCurrentAuthState()` from `src/domain/auth/runtime.ts`) remains there, unrelated to this pattern.
 
 ```
 Browser
@@ -314,11 +314,19 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - Relation: one `general_practitioner` → many `contact`
 - Deleting one that's still referenced by a `contact` fails at the DB level (no cascade) — the `generalPractitioner.delete` mutation surfaces this as a generic error toast, same as `contacts.deleteContact`'s behavior for RDV references
 
+<<<<<<< HEAD
 **`export_log`** — one row per export
 - `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
 
 **`email_log`** — one row per RDV reminder
 - `id`, `rdv_id` (FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; unique `(rdv_id, target_date)` so `record` upserts
+
+After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
+**`export_log`** — one row per export
+- `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
+
+**`email_log`** — one row per RDV (1:1, `rdv.email_log email_log?`)
+- `id`, `rdv_id` (unique FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; `record` upserts on `rdv_id`, so a moved RDV's new reminder overwrites its old row
 
 After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 

@@ -25,7 +25,7 @@ export const EmailLogRepositoryLive = Layer.succeed(EmailLogRepository, {
     return Effect.tryPromise({
       try: () =>
         prisma.email_log.upsert({
-          where: { rdv_id_target_date: { rdv_id: data.rdv_id, target_date: data.target_date } },
+          where: { rdv_id: data.rdv_id },
           create: data,
           update: data,
         }),
