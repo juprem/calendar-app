@@ -79,6 +79,10 @@ export type ImportData = z.infer<typeof ImportDataSchema>;
 export const IMPORT_ENTITIES = ['practitioners', 'contacts', 'rdvs'] as const;
 export type ImportEntity = (typeof IMPORT_ENTITIES)[number];
 
+const FIRST_DATA_ROW_NUMBER = 2;
+
+export const toExcelRowNumber = (rowIndex: number): number => rowIndex + FIRST_DATA_ROW_NUMBER;
+
 export interface ImportRowError {
   readonly entity: ImportEntity;
   readonly rowNumber: number;

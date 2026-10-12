@@ -1,5 +1,6 @@
 import type { export_log } from '../../../../generated/prisma/client.ts';
 import { truncateToUTCDate } from '#/utils/dateUtils.ts';
+import { toRdvPrismaInput } from '#/domain/calendar/adapter/mappers.ts';
 import type { ContactImportRow, ExportLog, PractitionerImportRow, RdvImportRow } from '../models.ts';
 
 export const toExportLog = (row: export_log): ExportLog => ({
@@ -29,17 +30,6 @@ export const toContactUpsertArgs = (row: ContactImportRow) => {
 };
 
 export const toRdvUpsertArgs = (row: RdvImportRow, dayId: number) => {
-  const data = {
-    day_id: dayId,
-    start_hour: row.startHour,
-    end_hour: row.endHour,
-    name: row.name,
-    rdv_type: row.rdvType,
-    is_confirmed: row.isConfirmed,
-    additional_infos: row.additionalInfos,
-    confirmation_date: row.confirmationDate,
-    confirmation_mode: row.confirmationMode,
-    contact_id: row.contactId,
-  };
+  const data = toRdvPrismaInput({ ...row, dayId });
   return { where: { id: row.id }, create: { id: row.id, ...data }, update: data };
 };

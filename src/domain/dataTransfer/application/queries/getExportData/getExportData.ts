@@ -24,14 +24,14 @@ const dayAfter = (isoDate: ISODate): Date => toUTCDate(dayjs(isoDate).add(1, 'da
 export const computeSinceLastExportRange = (
   lastExportedAt: Option.Option<Date>,
   today: ISODate,
-): SinceLastExportRange =>
-  Option.match(lastExportedAt, {
-    onNone: () => ({ start: new Date(0), endExclusive: dayAfter(today), sinceLastExportStart: null }),
-    onSome: (exportedAt) => {
-      const sinceLastExportStart = toParisISODate(exportedAt);
-      return { start: toUTCDate(sinceLastExportStart), endExclusive: dayAfter(today), sinceLastExportStart };
-    },
-  });
+): SinceLastExportRange => {
+  const sinceLastExportStart = Option.getOrNull(Option.map(lastExportedAt, toParisISODate));
+  return {
+    start: sinceLastExportStart === null ? new Date(0) : toUTCDate(sinceLastExportStart),
+    endExclusive: dayAfter(today),
+    sinceLastExportStart,
+  };
+};
 
 export const computeRollingRange = (today: ISODate): ExportRange => ({
   start: toUTCDate(dayjs(today).subtract(1, 'month').format(ISO_DATE)),
@@ -73,13 +73,18 @@ export const getExportData = (now: Date) =>
     );
     const rollingRange = computeRollingRange(today);
 
-    const contacts = yield* contactRepository.findAll();
-    const practitioners = yield* generalPractitionerRepository.findAll();
-    const daysSinceLastExport = yield* dayRepository.findManyWithRdvsInRange(
-      sinceLastExportRange.start,
-      sinceLastExportRange.endExclusive,
+    const { contacts, practitioners, daysSinceLastExport, rollingDays } = yield* Effect.all(
+      {
+        contacts: contactRepository.findAll(),
+        practitioners: generalPractitionerRepository.findAll(),
+        daysSinceLastExport: dayRepository.findManyWithRdvsInRange(
+          sinceLastExportRange.start,
+          sinceLastExportRange.endExclusive,
+        ),
+        rollingDays: dayRepository.findManyWithRdvsInRange(rollingRange.start, rollingRange.endExclusive),
+      },
+      { concurrency: 'unbounded' },
     );
-    const rollingDays = yield* dayRepository.findManyWithRdvsInRange(rollingRange.start, rollingRange.endExclusive);
 
     return {
       exportedAt: now,

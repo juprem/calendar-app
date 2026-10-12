@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Alert, Button, List, Modal, Popconfirm, Upload } from 'antd';
 import { Inbox } from 'lucide-react';
 import { useImportData } from '#/services/dataTransferService.ts';
-import { parseImportFile, type ParsedImportFile } from '#/components/Layout/DataTransfer/utils/parseImportFile.ts';
+import { parseImportFile, type ParsedImportFile } from '#/utils/excel/parseImportFile.ts';
 import type { ImportData, ImportEntity, ImportRowError } from '#/domain/dataTransfer/models.ts';
 
 interface ImportModalProps {
@@ -18,7 +18,16 @@ const ENTITY_LABELS: Record<ImportEntity, string> = {
   rdvs: 'RDV',
 };
 
+const EMPTY_IMPORT_DATA: ImportData = { practitioners: [], contacts: [], rdvs: [] };
+
 const isReadyFile = (file: ParsedImportFile): file is ReadyImportFile => file.status === 'ready';
+
+const isReplacedBy = (previousFile: ParsedImportFile, incomingFile: ParsedImportFile): boolean => {
+  const isSameFileName = previousFile.fileName === incomingFile.fileName;
+  const isSameEntity =
+    isReadyFile(previousFile) && isReadyFile(incomingFile) && previousFile.entity === incomingFile.entity;
+  return isSameFileName || isSameEntity;
+};
 
 export function ImportModal({ open, closeModal }: ImportModalProps) {
   const [parsedFiles, setParsedFiles] = useState<ParsedImportFile[]>([]);
@@ -26,8 +35,7 @@ export function ImportModal({ open, closeModal }: ImportModalProps) {
   const { mutate: importData, isPending } = useImportData();
 
   const readyFiles = parsedFiles.filter(isReadyFile);
-  const hasErrorFile = parsedFiles.some((parsedFile) => parsedFile.status === 'error');
-  const canImport = readyFiles.length > 0 && !hasErrorFile;
+  const canImport = readyFiles.length > 0 && readyFiles.length === parsedFiles.length;
 
   const fileNameOf = (entity: ImportEntity) =>
     readyFiles.find((readyFile) => readyFile.entity === entity)?.fileName ?? ENTITY_LABELS[entity];
@@ -36,15 +44,7 @@ export function ImportModal({ open, closeModal }: ImportModalProps) {
     const parsedFile = await parseImportFile(file);
     setRowErrors([]);
     setParsedFiles((previousFiles) => [
-      ...previousFiles.filter(
-        (previousFile) =>
-          previousFile.fileName !== parsedFile.fileName &&
-          !(
-            isReadyFile(previousFile) &&
-            isReadyFile(parsedFile) &&
-            previousFile.entity === parsedFile.entity
-          ),
-      ),
+      ...previousFiles.filter((previousFile) => !isReplacedBy(previousFile, parsedFile)),
       parsedFile,
     ]);
   };
@@ -59,11 +59,10 @@ export function ImportModal({ open, closeModal }: ImportModalProps) {
   };
 
   const confirmImport = () => {
-    const dataToImport: ImportData = {
-      practitioners: readyFiles.find((readyFile) => readyFile.entity === 'practitioners')?.importData.practitioners ?? [],
-      contacts: readyFiles.find((readyFile) => readyFile.entity === 'contacts')?.importData.contacts ?? [],
-      rdvs: readyFiles.find((readyFile) => readyFile.entity === 'rdvs')?.importData.rdvs ?? [],
-    };
+    const dataToImport = readyFiles.reduce<ImportData>(
+      (mergedData, readyFile) => ({ ...mergedData, ...readyFile.importData }),
+      EMPTY_IMPORT_DATA,
+    );
     importData(dataToImport, {
       onSuccess: (result) => {
         if (result.status === 'imported') {

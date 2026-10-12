@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '#/configurations/trpc/react.ts';
 import { notifyErrorService, notifySuccess } from '#/domain/notifications/runtime.ts';
-import { downloadExportFiles } from '#/components/Layout/DataTransfer/utils/downloadExportFiles.ts';
+import { downloadExportFiles } from '#/utils/excel/downloadExportFiles.ts';
 import type { ImportResult } from '#/domain/dataTransfer/models.ts';
 
 const sumCounts = (counts: Extract<ImportResult, { status: 'imported' }>['counts'], key: 'created' | 'updated') =>

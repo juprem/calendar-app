@@ -3,6 +3,7 @@ import {
   ContactImportRowSchema,
   PractitionerImportRowSchema,
   RdvImportRowSchema,
+  toExcelRowNumber,
   type ImportData,
   type ImportEntity,
 } from '#/domain/dataTransfer/models.ts';
@@ -14,69 +15,41 @@ export type ParsedImportFile =
       readonly fileName: string;
       readonly entity: ImportEntity;
       readonly rowCount: number;
-      readonly importData: ImportData;
+      readonly importData: Partial<ImportData>;
     }
   | { readonly status: 'error'; readonly fileName: string; readonly messages: string[] };
 
-type RowsParseResult<Row> =
-  | { readonly succeeded: true; readonly rows: Row[] }
+type RowsParseResult =
+  | { readonly succeeded: true; readonly rowCount: number; readonly importData: Partial<ImportData> }
   | { readonly succeeded: false; readonly messages: string[] };
-
-const FIRST_DATA_ROW_NUMBER = 2;
 
 const describeIssue = (issue: z.core.$ZodIssue) => {
   const [rowIndex, ...fieldPath] = issue.path;
-  const rowNumber = typeof rowIndex === 'number' ? rowIndex + FIRST_DATA_ROW_NUMBER : '?';
+  const rowNumber = typeof rowIndex === 'number' ? toExcelRowNumber(rowIndex) : '?';
   return `ligne ${rowNumber} : ${fieldPath.map(String).join('.')} — ${issue.message}`;
 };
 
-const parseRows = <Row>(schema: z.ZodType<Row>, objects: unknown): RowsParseResult<Row> => {
-  const result = z.array(schema).safeParse(objects);
+const parseRows = <Row>(
+  rowSchema: z.ZodType<Row>,
+  objects: unknown,
+  toImportData: (rows: Row[]) => Partial<ImportData>,
+): RowsParseResult => {
+  const result = z.array(rowSchema).safeParse(objects);
   return result.success
-    ? { succeeded: true, rows: result.data }
+    ? { succeeded: true, rowCount: result.data.length, importData: toImportData(result.data) }
     : { succeeded: false, messages: result.error.issues.map(describeIssue) };
 };
 
-const EMPTY_IMPORT_DATA: ImportData = { practitioners: [], contacts: [], rdvs: [] };
+const ROW_PARSERS: Record<ImportEntity, (objects: unknown) => RowsParseResult> = {
+  practitioners: (objects) => parseRows(PractitionerImportRowSchema, objects, (rows) => ({ practitioners: rows })),
+  contacts: (objects) => parseRows(ContactImportRowSchema, objects, (rows) => ({ contacts: rows })),
+  rdvs: (objects) => parseRows(RdvImportRowSchema, objects, (rows) => ({ rdvs: rows })),
+};
 
-const toParsedFile = (
-  fileName: string,
-  entity: ImportEntity,
-  objects: unknown,
-): ParsedImportFile => {
-  if (entity === 'practitioners') {
-    const result = parseRows(PractitionerImportRowSchema, objects);
-    return result.succeeded
-      ? {
-          status: 'ready',
-          fileName,
-          entity,
-          rowCount: result.rows.length,
-          importData: { ...EMPTY_IMPORT_DATA, practitioners: result.rows },
-        }
-      : { status: 'error', fileName, messages: result.messages };
-  }
-  if (entity === 'contacts') {
-    const result = parseRows(ContactImportRowSchema, objects);
-    return result.succeeded
-      ? {
-          status: 'ready',
-          fileName,
-          entity,
-          rowCount: result.rows.length,
-          importData: { ...EMPTY_IMPORT_DATA, contacts: result.rows },
-        }
-      : { status: 'error', fileName, messages: result.messages };
-  }
-  const result = parseRows(RdvImportRowSchema, objects);
+const toParsedFile = (fileName: string, entity: ImportEntity, objects: unknown): ParsedImportFile => {
+  const result = ROW_PARSERS[entity](objects);
   return result.succeeded
-    ? {
-        status: 'ready',
-        fileName,
-        entity,
-        rowCount: result.rows.length,
-        importData: { ...EMPTY_IMPORT_DATA, rdvs: result.rows },
-      }
+    ? { status: 'ready', fileName, entity, rowCount: result.rowCount, importData: result.importData }
     : { status: 'error', fileName, messages: result.messages };
 };
 
@@ -96,7 +69,7 @@ export async function parseImportFile(file: File): Promise<ParsedImportFile> {
         fileName: file.name,
         messages: errors.map(
           (error) =>
-            `ligne ${error.row + 1} : ${error.column} — ${error.error}${error.reason ? ` (${error.reason})` : ''}`,
+            `ligne ${toExcelRowNumber(error.row - 1)} : ${error.column} — ${error.error}${error.reason ? ` (${error.reason})` : ''}`,
         ),
       };
     }

@@ -6,7 +6,9 @@ import { DataImportRepository } from '../port/data-import-repository.ts';
 import type { ImportCount } from '../models.ts';
 import { toContactUpsertArgs, toPractitionerUpsertArgs, toRdvUpsertArgs } from './mappers.ts';
 
-const resetSequenceStatement = (tableName: string) =>
+const SEQUENCED_TABLES = ['general_practitioner', 'contact', 'rdv'] as const;
+
+const resetSequenceStatement = (tableName: (typeof SEQUENCED_TABLES)[number]) =>
   `SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE((SELECT MAX(id) FROM ${tableName}), 1))`;
 
 const toCount = (importedIds: number[], existingRows: { id: number }[]): ImportCount => {
@@ -32,9 +34,8 @@ export const DataImportRepositoryLive = Layer.succeed(DataImportRepository, {
         const distinctRdvDates = [...new Set(data.rdvs.map((row) => truncateToUTCDate(row.date).getTime()))].map(
           (timestamp) => new Date(timestamp),
         );
-        const days = await Promise.all(
-          distinctRdvDates.map((date) => prisma.day.upsert({ where: { date }, create: { date }, update: {} })),
-        );
+        await prisma.day.createMany({ data: distinctRdvDates.map((date) => ({ date })), skipDuplicates: true });
+        const days = await prisma.day.findMany({ where: { date: { in: distinctRdvDates } } });
         const dayIdByTimestamp = new Map(days.map((day) => [day.date.getTime(), day.id]));
 
         const findDayId = (date: Date): number => {
@@ -47,9 +48,7 @@ export const DataImportRepositoryLive = Layer.succeed(DataImportRepository, {
           ...data.practitioners.map((row) => prisma.general_practitioner.upsert(toPractitionerUpsertArgs(row))),
           ...data.contacts.map((row) => prisma.contact.upsert(toContactUpsertArgs(row))),
           ...data.rdvs.map((row) => prisma.rdv.upsert(toRdvUpsertArgs(row, findDayId(row.date)))),
-          prisma.$executeRawUnsafe(resetSequenceStatement('general_practitioner')),
-          prisma.$executeRawUnsafe(resetSequenceStatement('contact')),
-          prisma.$executeRawUnsafe(resetSequenceStatement('rdv')),
+          ...SEQUENCED_TABLES.map((tableName) => prisma.$executeRawUnsafe(resetSequenceStatement(tableName))),
         ]);
 
         return {
