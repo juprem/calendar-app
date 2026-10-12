@@ -6,6 +6,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { AddContact } from '#/components/Layout/AddContact/AddContact.tsx';
 import { CalendarFilterBar } from '#/components/Layout/CalendarFilterBar.tsx';
 import { SignedInOnly } from '#/components/Layout/SignedInOnly.tsx';
+import { DataTransferButtons } from '#/components/Layout/DataTransfer/DataTransferButtons.tsx';
 
 interface LayoutProps {
   children: ReactNode;
@@ -67,6 +68,7 @@ export function Layout({ children }: LayoutProps) {
               RDV
             </Button>
             <AddContact />
+            <DataTransferButtons />
           </div>
         </header>
         <AddRdv open={open} onClose={() => setOpen(false)} />

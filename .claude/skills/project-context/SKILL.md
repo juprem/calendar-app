@@ -278,7 +278,7 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - Relation: one `general_practitioner` → many `contact`
 - Deleting one that's still referenced by a `contact` fails at the DB level (no cascade) — the `generalPractitioner.delete` mutation surfaces this as a generic error toast, same as `contacts.deleteContact`'s behavior for RDV references
 
-After any schema change: `npx prisma db push`
+After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 
 > **Note**: dates are stored as a single `date` field (not separate `day/month/year` integers). Always use `new Date('YYYY-MM-DDT00:00:00.000Z')` when querying by date.
 
