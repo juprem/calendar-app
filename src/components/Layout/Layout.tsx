@@ -4,9 +4,10 @@ import { CalendarDays, Plus } from 'lucide-react';
 import { AddRdv } from '#/components/Layout/AddRdv/AddRdv.tsx';
 import { Link, useLocation, useNavigate } from '@tanstack/react-router';
 import { AddContact } from '#/components/Layout/AddContact/AddContact.tsx';
+import { ImportButton } from '#/components/Layout/DataTransfer/ImportButton/ImportButton.tsx';
+import { ExportButton } from '#/components/Layout/DataTransfer/ExportButton/ExportButton.tsx';
 import { CalendarFilterBar } from '#/components/Layout/CalendarFilterBar.tsx';
 import { SignedInOnly } from '#/components/Layout/SignedInOnly.tsx';
-import { DataTransferButtons } from '#/components/Layout/DataTransfer/DataTransferButtons.tsx';
 
 interface LayoutProps {
   children: ReactNode;
@@ -68,7 +69,8 @@ export function Layout({ children }: LayoutProps) {
               RDV
             </Button>
             <AddContact />
-            <DataTransferButtons />
+            <ImportButton />
+            <ExportButton />
           </div>
         </header>
         <AddRdv open={open} onClose={() => setOpen(false)} />
