@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignInIndexRouteImport } from './routes/sign-in/index'
 import { Route as ForbiddenIndexRouteImport } from './routes/forbidden/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in/$'
+import { Route as ProtectedRappelsIndexRouteImport } from './routes/_protected/rappels/index'
 import { Route as ProtectedMensuelleIndexRouteImport } from './routes/_protected/mensuelle/index'
 import { Route as ProtectedJournaliereIndexRouteImport } from './routes/_protected/journaliere/index'
 import { Route as ProtectedHebdomadaireIndexRouteImport } from './routes/_protected/hebdomadaire/index'
@@ -43,6 +44,11 @@ const SignInSplatRoute = SignInSplatRouteImport.update({
   id: '/sign-in/$',
   path: '/sign-in/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProtectedRappelsIndexRoute = ProtectedRappelsIndexRouteImport.update({
+  id: '/rappels/',
+  path: '/rappels/',
+  getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedMensuelleIndexRoute = ProtectedMensuelleIndexRouteImport.update({
   id: '/mensuelle/',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/hebdomadaire/': typeof ProtectedHebdomadaireIndexRoute
   '/journaliere/': typeof ProtectedJournaliereIndexRoute
   '/mensuelle/': typeof ProtectedMensuelleIndexRoute
+  '/rappels/': typeof ProtectedRappelsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/hebdomadaire': typeof ProtectedHebdomadaireIndexRoute
   '/journaliere': typeof ProtectedJournaliereIndexRoute
   '/mensuelle': typeof ProtectedMensuelleIndexRoute
+  '/rappels': typeof ProtectedRappelsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/_protected/hebdomadaire/': typeof ProtectedHebdomadaireIndexRoute
   '/_protected/journaliere/': typeof ProtectedJournaliereIndexRoute
   '/_protected/mensuelle/': typeof ProtectedMensuelleIndexRoute
+  '/_protected/rappels/': typeof ProtectedRappelsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/hebdomadaire/'
     | '/journaliere/'
     | '/mensuelle/'
+    | '/rappels/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/hebdomadaire'
     | '/journaliere'
     | '/mensuelle'
+    | '/rappels'
   id:
     | '__root__'
     | '/'
@@ -142,6 +153,7 @@ export interface FileRouteTypes {
     | '/_protected/hebdomadaire/'
     | '/_protected/journaliere/'
     | '/_protected/mensuelle/'
+    | '/_protected/rappels/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -190,6 +202,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/rappels/': {
+      id: '/_protected/rappels/'
+      path: '/rappels'
+      fullPath: '/rappels/'
+      preLoaderRoute: typeof ProtectedRappelsIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/mensuelle/': {
       id: '/_protected/mensuelle/'
       path: '/mensuelle'
@@ -233,6 +252,7 @@ interface ProtectedRouteChildren {
   ProtectedHebdomadaireIndexRoute: typeof ProtectedHebdomadaireIndexRoute
   ProtectedJournaliereIndexRoute: typeof ProtectedJournaliereIndexRoute
   ProtectedMensuelleIndexRoute: typeof ProtectedMensuelleIndexRoute
+  ProtectedRappelsIndexRoute: typeof ProtectedRappelsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
@@ -240,6 +260,7 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedHebdomadaireIndexRoute: ProtectedHebdomadaireIndexRoute,
   ProtectedJournaliereIndexRoute: ProtectedJournaliereIndexRoute,
   ProtectedMensuelleIndexRoute: ProtectedMensuelleIndexRoute,
+  ProtectedRappelsIndexRoute: ProtectedRappelsIndexRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(

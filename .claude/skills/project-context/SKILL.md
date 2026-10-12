@@ -1,12 +1,35 @@
 ---
 name: project-context
 description: >
-  Loads the full context of this calendar-app project — tech stack, architecture, feature map, database schema, and dev workflow. This skill MUST be invoked at the start of every Claude Code session in this repository. Use it any time you are about to write code, add a feature, fix a bug, or answer a question about how this project works. If you haven't loaded this context yet and are about to touch any file in this repo, load it now. Do not rely on general knowledge about TanStack, tRPC, or Prisma — always check the actual versions and conventions used here first.
+  Loads the full context of this calendar-app project — tech stack, architecture, feature map, database schema, dev workflow, and the graphify knowledge graph in graphify-out/ (query it before grepping). This skill MUST be invoked at the start of every Claude Code session in this repository. Use it any time you are about to write code, add a feature, fix a bug, or answer a question about how this project works. If you haven't loaded this context yet and are about to touch any file in this repo, load it now. Do not rely on general knowledge about TanStack, tRPC, or Prisma — always check the actual versions and conventions used here first.
 ---
 
 # Calendar App — Project Context
 
 This is a **professional scheduling tool** for managing appointments (RDV = rendez-vous) and contacts. It runs as a full-stack SSR React app deployed on Cloudflare Workers at `calendar.olivierabdelnour.dev`.
+
+---
+
+## Knowledge graph (graphify)
+
+A graphify knowledge graph of `src/` lives in `graphify-out/` (AST-only, no LLM cost; git-ignored, so it exists only locally). Use it **before** grepping or opening files when a question is about structure, dependencies, or "what touches X":
+
+| Need | Command |
+|---|---|
+| Broad context for a question | `graphify query "<question>"` (add `--dfs` to trace one path, `--budget 1500` to cap output) |
+| How two things are connected | `graphify path "ImportModal" "importData"` |
+| What a node is + its neighbours | `graphify explain "runEffect"` |
+| Blast radius of a change | `graphify affected "toDbError"` |
+| Core hubs | `graphify god-nodes` |
+
+- `graphify-out/GRAPH_REPORT.md` — community map, god nodes, surprising cross-community edges. Communities are named after their main file (no LLM labelling yet); run the full `/graphify src` skill once to get semantic names.
+- `graphify-out/graph.html` — interactive view for humans.
+- Current hubs: `RdvWithContact`, `useTRPC`, `Contact`, `notifySuccess()`, `DbError`, `notifyErrorService()`, `NotFoundError`, `toDbError()`.
+- The CLI binary is at `~/.local/bin/graphify` (installed with `uv tool install 'graphifyy[sql]'`); prefix `PATH=$HOME/.local/bin:$PATH` if `graphify` is not found.
+- Answers cite `source_location` — still open the cited file before editing; the graph can lag behind uncommitted changes.
+- If `graphify-out/` is missing (fresh clone), build it with the refresh command below.
+
+**Keep it fresh:** after adding/moving/deleting files in `src/`, refresh the graph (incremental, AST-only, seconds). `graphify update <path>` defaults to `<path>/graphify-out`, so always run it from the project root as `GRAPHIFY_OUT=$PWD/graphify-out graphify update src` (add `--force` after moves/deletes that shrink the node count). Never leave a `src/graphify-out/` behind.
 
 ---
 
@@ -40,7 +63,7 @@ This is a **professional scheduling tool** for managing appointments (RDV = rend
 
 ## Architecture
 
-Every business domain (`calendar`, `contact`, `generalPractitioner`, plus `auth` — a port over Clerk, see Authentication) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the `requireCalendarAccess` server fn, which reads `getCurrentAuthState()` from `src/domain/auth/runtime.ts`) remains there, unrelated to this pattern.
+Every business domain (`calendar`, `contact`, `generalPractitioner`, `dataTransfer`, plus `auth` — a port over Clerk, see Authentication) is its own self-contained **hexagonal module** under `src/domain/<name>/`, built on the `effect` library (ports/adapters, typed errors, no direct Prisma coupling above the adapter layer). `src/server/` no longer holds domain logic — only `auth.ts` (the `requireCalendarAccess` server fn, which reads `getCurrentAuthState()` from `src/domain/auth/runtime.ts`) remains there, unrelated to this pattern.
 
 ```
 Browser
@@ -77,14 +100,14 @@ All Effect plumbing — including domain-specific typed errors — lives in one 
 |---|---|
 | `src/routes/` | TanStack Router pages — one file per route, nested under the `_protected` layout route |
 | `src/components/` | Feature-scoped React components (see the full tree below) |
-| `src/services/` | Domain hooks wrapping tRPC (`calendarService.ts`, `contactService.ts`, `generalPractitionerService.ts`) — this is the ONE layer that still sits outside `src/domain/` |
+| `src/services/` | Domain hooks wrapping tRPC (`calendarService.ts`, `contactService.ts`, `generalPractitionerService.ts`, `dataTransferService.ts`) — this is the ONE layer that still sits outside `src/domain/` |
 | `src/domain/<name>/` | A self-contained hexagonal module per business domain (`calendar`, `contact`, `generalPractitioner`) — `models.ts`, `testSupport.ts` (or `adapter/*-repository-mock.ts`), `port/`, `adapter/`, `application/{queries,mutations,controllers}/` — see Architecture above. No domain has its own `errors.ts`; all error classes (shared and domain-specific alike) live in `src/effect/errors.ts` |
 | `src/effect/` | Effect kernel shared by every domain module: `errors.ts` (every error class in the app, shared or domain-specific), `runEffect.ts`, `testSupport.ts` |
 | `src/configurations/trpc/` | tRPC init (`init.ts` — exports `protectedProcedure` and the raw `middleware` builder), React hooks, and the root router (`router/router.ts`, which just merges each domain's controller router) |
 | `src/server/auth.ts` | Route access check (`requireCalendarAccess`, via the `auth` domain port) — the only thing left in `src/server/` |
 | `src/store/` | Zustand stores (client-only UI state) |
 | `src/models/` | Frontend-only display/option/style artifacts, one file per entity (e.g. `CalendarModel.ts`, `ContactModel.ts`) — importing types/value-lists from the owning domain's `models.ts` where needed. Entity types and create/update Zod schemas live in `src/domain/<name>/models.ts`, not here |
-| `src/utils/` | Cross-feature pure helpers (`dateUtils.ts`, `timeUtils.ts`, `contactUtils.ts`) |
+| `src/utils/` | Cross-feature pure helpers (`dateUtils.ts` incl. `toParisISODate`, `timeUtils.ts`, `contactUtils.ts`); `excel/` holds the Excel export/import helpers (`excelColumns.ts` — one column list per entity driving both the write and read schemas, `downloadExportZip.ts`, `parseImportFile.ts`) |
 | `src/db.ts` | Prisma client singleton with Neon adapter |
 | `src/start.ts` | TanStack Start config — registers `clerkMiddleware()` + CSRF middleware |
 | `prisma/schema.prisma` | Database schema |
@@ -107,6 +130,11 @@ src/components/
 │   ├── AddContact/
 │   │   ├── AddContact.tsx               — trigger button
 │   │   └── AddContactModal.tsx
+│   ├── DataTransfer/                    — header "Importer"/"Exporter" buttons
+│   │   ├── ExportButton/ExportButton.tsx — downloads export_<today>.zip (4 xlsx), then records the export
+│   │   └── ImportButton/
+│   │       ├── ImportButton.tsx         — trigger button, owns modal open state
+│   │       └── ImportModal.tsx          — drop xlsx files, preview row counts, confirm, show row errors
 │   └── AddRdv/
 │       ├── AddRdv.tsx                   — trigger button
 │       ├── ContactSelectField.tsx
@@ -190,6 +218,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `/hebdomadaire` | `src/routes/_protected/hebdomadaire/index.tsx` | `WeeklyViewWrapper` |
 | `/mensuelle` | `src/routes/_protected/mensuelle/index.tsx` | `MonthlyViewWrapper` |
 | `/contacts` | `src/routes/_protected/contacts/index.tsx` | `Contacts` |
+| `/rappels` | `src/routes/_protected/rappels/index.tsx` | `Reminders` |
 | `/api/trpc/*` | `src/routes/api.trpc.$.tsx` | tRPC fetch handler |
 | `/forbidden` | `src/routes/forbidden/index.tsx` | Access denied |
 | `/sign-in` | `src/routes/sign-in/` | Clerk sign-in |
@@ -232,6 +261,13 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `generalPractitioner` | `add` | `CreateGeneralPractitionerSchema` | Create a practitioner |
 | `generalPractitioner` | `update` | `UpdateGeneralPractitionerSchema` | Update a practitioner |
 | `generalPractitioner` | `delete` | `number` | Delete a practitioner (fails if still referenced by a contact — FK is `onDelete: NoAction`) |
+| `dataTransfer` | `getExportData` | — | Contacts, practitioners, RDV since the last export and rolling RDV (today − 1 month onward), plus `exportedAt` |
+| `dataTransfer` | `recordExport` | `RecordExportSchema` (`{ exportedAt }`, not in the future) | Insert an `export_log` row |
+| `reminder` | `getStatus` | — | Monday targeted by the latest log (else next Monday), live count of its RDV with contact, sent count, failed rows |
+| `reminder` | `resend` | `number` (email_log id) | Resend one reminder, upserts its log row |
+| `reminder` | `clearLog` | — | Delete every `email_log` row ("Valider") |
+| `reminder` | `sendTest` | — | Real Brevo email with sample params to `REMINDER_TEST_RECIPIENT` |
+| `dataTransfer` | `importData` | `ImportDataSchema` | Validate (unknown FK, duplicate id, contact identity) then upsert by id in one array `$transaction` and reset id sequences; returns `imported` counts or `rejected` row errors |
 
 - **Convention**: add new procedures to the matching domain's `application/controllers/<name>Router.ts`; for a genuinely new domain, scaffold the full `port/adapter/application` structure (see Architecture above) and register the new controller router in `src/configurations/trpc/router/router.ts`
 
@@ -278,7 +314,13 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - Relation: one `general_practitioner` → many `contact`
 - Deleting one that's still referenced by a `contact` fails at the DB level (no cascade) — the `generalPractitioner.delete` mutation surfaces this as a generic error toast, same as `contacts.deleteContact`'s behavior for RDV references
 
-After any schema change: `npx prisma db push`
+**`export_log`** — one row per export
+- `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
+
+**`email_log`** — one row per RDV reminder
+- `id`, `rdv_id` (FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; unique `(rdv_id, target_date)` so `record` upserts
+
+After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 
 > **Note**: dates are stored as a single `date` field (not separate `day/month/year` integers). Always use `new Date('YYYY-MM-DDT00:00:00.000Z')` when querying by date.
 
@@ -299,6 +341,8 @@ After any schema change: `npx prisma db push`
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |
 | Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
+| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-export-import/` |
+| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/weekly-email/` |
 
 ---
 
@@ -314,7 +358,8 @@ npx prisma db push    # sync schema changes to NeonDB
 npx prisma studio     # browse the database locally
 ```
 
-- **Env vars**: `DATABASE_URL` (NeonDB), `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`
+- **Env vars**: `DATABASE_URL` (NeonDB), `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, `BREVO_API_KEY` (secret; `.env` locally); `BREVO_TEMPLATE_ID`, `REMINDER_TEST_RECIPIENT` are `vars` in `wrangler.jsonc`
+- **Reminder cron**: `0 10,11 * * SUN` (UTC), `runReminderCron` acts only at 12:00 Paris. Dev uses a console.log sender (no Brevo call) except the test-email button. Trigger locally: `curl "localhost:3000/cdn-cgi/handler/scheduled?cron=0+10,11+*+*+SUN"`
 - **Cloudflare secrets**: set via `wrangler secret put <VAR_NAME>` — never hardcode in source files
 - **Deploy config**: `wrangler.jsonc`
 - **DB config**: `prisma.config.ts`
