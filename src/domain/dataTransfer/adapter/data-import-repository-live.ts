@@ -9,7 +9,7 @@ import { toContactUpsertArgs, toPractitionerUpsertArgs, toRdvUpsertArgs } from '
 const SEQUENCED_TABLES = ['general_practitioner', 'contact', 'rdv'] as const;
 
 const resetSequenceStatement = (tableName: (typeof SEQUENCED_TABLES)[number]) =>
-  `SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE((SELECT MAX(id) FROM ${tableName}), 1))`;
+  `SELECT setval(pg_get_serial_sequence('${tableName}', 'id'), COALESCE((SELECT MAX(id) FROM ${tableName}), 0) + 1, false)`;
 
 const toCount = (importedIds: number[], existingRows: { id: number }[]): ImportCount => {
   const existingIds = new Set(existingRows.map((existingRow) => existingRow.id));

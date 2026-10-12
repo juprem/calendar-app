@@ -25,7 +25,9 @@ export interface ExportData {
   readonly rdvRolling: RdvExportRow[];
 }
 
-export const RecordExportSchema = z.object({ exportedAt: z.date() });
+export const RecordExportSchema = z.object({
+  exportedAt: z.date().refine((exportedAt) => exportedAt <= new Date(), "La date d'export ne peut pas être dans le futur"),
+});
 
 const ImportIdSchema = z.number().int().positive();
 const NullableTextSchema = z.string().nullable();

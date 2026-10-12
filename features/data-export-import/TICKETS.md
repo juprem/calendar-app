@@ -28,10 +28,10 @@ Add an `export_log` table (`id`, `exported_at DateTime`) so the next export know
 
 **Acceptance criteria**
 
-- [ ] `export_log` model in `prisma/schema.prisma`, no DB-level default on `exported_at` (value set by the app)
-- [ ] Domain `dataTransfer` scaffolded (`models.ts`, `port/`, `adapter/` with mapper, `testSupport.ts`); `application/controllers/` (router + runtime) comes with the first procedure in CAL-EXP-2
-- [ ] `ExportLogRepository` port: `findLast()`, `record(exportedAt)`
-- [ ] `npx prisma db push` applied
+- [x] `export_log` model in `prisma/schema.prisma`, no DB-level default on `exported_at` (value set by the app)
+- [x] Domain `dataTransfer` scaffolded (`models.ts`, `port/`, `adapter/` with mapper, `testSupport.ts`); `application/controllers/` (router + runtime) comes with the first procedure in CAL-EXP-2
+- [x] `ExportLogRepository` port: `findLast()`, `record(exportedAt)`
+- [x] `npx prisma db push` applied
 
 ---
 
@@ -45,12 +45,12 @@ One query returning everything the client needs to build the files, so the brows
 
 **Acceptance criteria**
 
-- [ ] Returns `{ exportedAt, lastExportAt | null, contacts, practitioners, rdvSinceLastExport, rdvRolling }`
-- [ ] Every row carries its `id` and every DB field; RDV rows also carry the `date` (from `day`), `contactId` and the contact's `firstname`/`lastname` for readability
-- [ ] `rdvSinceLastExport`: `day.date` between `lastExportAt` date (inclusive) and today (inclusive); when `lastExportAt` is null, every RDV up to today
-- [ ] `rdvRolling`: `day.date >= today − 1 month`
-- [ ] "Today" is computed in Europe/Paris and truncated to UTC midnight like every other date in the app
-- [ ] Query function in `application/queries/` with a colocated test on the range boundaries (first export, same-day re-export, month boundary)
+- [x] Returns `{ exportedAt, lastExportAt | null, contacts, practitioners, rdvSinceLastExport, rdvRolling }`
+- [x] Every row carries its `id` and every DB field; RDV rows also carry the `date` (from `day`), `contactId` and the contact's `firstname`/`lastname` for readability
+- [x] `rdvSinceLastExport`: `day.date` between `lastExportAt` date (inclusive) and today (inclusive); when `lastExportAt` is null, every RDV up to today
+- [x] `rdvRolling`: `day.date >= today − 1 month`
+- [x] "Today" is computed in Europe/Paris and truncated to UTC midnight like every other date in the app
+- [x] Query function in `application/queries/` with a colocated test on the range boundaries (first export, same-day re-export, month boundary)
 
 **Technical notes**
 
@@ -69,9 +69,9 @@ Record the export only once the files were generated, so a failed generation doe
 
 **Acceptance criteria**
 
-- [ ] Input `{ exportedAt }` (the value returned by `getExportData`)
-- [ ] Inserts one `export_log` row
-- [ ] Called by the client after every file download was triggered without error
+- [x] Input `{ exportedAt }` (the value returned by `getExportData`)
+- [x] Inserts one `export_log` row
+- [x] Called by the client after every file download was triggered without error
 
 ---
 
@@ -85,11 +85,11 @@ Wire the header "Exporter" button (currently a disabled placeholder in `Layout/D
 
 **Acceptance criteria**
 
-- [ ] `ExportButton` component (own directory under `Layout/`, like `AddContact`) replaces the placeholder; success toast says which range the timestamped RDV file covers
-- [ ] Clicking "Exporter" fetches the data, builds the 4 `.xlsx` with `write-excel-file`, downloads them with the names above, then calls `recordExport`
-- [ ] Loading state on the button, error toast if anything fails (and `recordExport` is not called)
-- [ ] Column headers are the camelCase field names, so the same files can be re-imported as-is (CAL-IMP-2)
-- [ ] Data fetched through a new `src/services/dataTransferService.ts` hook
+- [x] `ExportButton` component (own directory under `Layout/`, like `AddContact`) replaces the placeholder; success toast says which range the timestamped RDV file covers
+- [x] Clicking "Exporter" fetches the data, builds the 4 `.xlsx` with `write-excel-file`, downloads them with the names above, then calls `recordExport`
+- [x] Loading state on the button, error toast if anything fails (and `recordExport` is not called)
+- [x] Column headers are the camelCase field names, so the same files can be re-imported as-is (CAL-IMP-2)
+- [x] Data fetched through a new `src/services/dataTransferService.ts` hook
 
 **Technical notes**
 
@@ -103,7 +103,7 @@ Wire the header "Exporter" button (currently a disabled placeholder in `Layout/D
 
 ---
 
-### CAL-IMP-1 — `dataImport.importData` mutation (upsert by id)
+### CAL-IMP-1 — `dataTransfer.importData` mutation (upsert by id)
 
 **Type:** Story · **Priority:** High
 
@@ -113,15 +113,15 @@ Receive the parsed rows of any subset of the exported files and upsert them by i
 
 **Acceptance criteria**
 
-- [ ] Input Zod schema: `{ practitioners?, contacts?, rdvs? }`, each row reusing the domain Create schema + a required `id`
-- [ ] Row with an existing id → update; unknown id → create with that id; nothing is ever deleted
-- [ ] RDV: the `day` is found-or-created from the row `date` (reuse the calendar find-or-create logic)
-- [ ] A contact referencing an unknown `generalPractitionerId`, or an RDV referencing an unknown `contactId`, is rejected with a row-level error
-- [ ] Contact identity conflict (`fullname_birthdate` on another id) → row-level error
-- [ ] Everything runs in one transaction: any row error → nothing is written, the full error list is returned (`{ file, rowNumber, reason }`)
-- [ ] After inserting explicit ids, each table's id sequence is reset to `MAX(id)` (`setval(pg_get_serial_sequence(...))`), otherwise the next create from the app collides
-- [ ] Success returns `{ created, updated }` counts per entity
-- [ ] Mutation function in `application/mutations/` with tests (update vs create, ordering, unknown FK, identity conflict)
+- [x] Input Zod schema: `{ practitioners?, contacts?, rdvs? }`, each row reusing the domain Create schema + a required `id`
+- [x] Row with an existing id → update; unknown id → create with that id; nothing is ever deleted
+- [x] RDV: the `day` is found-or-created from the row `date` (reuse the calendar find-or-create logic)
+- [x] A contact referencing an unknown `generalPractitionerId`, or an RDV referencing an unknown `contactId`, is rejected with a row-level error
+- [x] Contact identity conflict (`fullname_birthdate` on another id) → row-level error
+- [x] Everything runs in one transaction: any row error → nothing is written, the full error list is returned (`{ file, rowNumber, reason }`)
+- [x] After inserting explicit ids, each table's id sequence is reset to `MAX(id)` (`setval(pg_get_serial_sequence(...))`), otherwise the next create from the app collides
+- [x] Success returns `{ created, updated }` counts per entity
+- [x] Mutation function in `application/mutations/` with tests (update vs create, ordering, unknown FK, identity conflict)
 
 **Technical notes**
 
@@ -140,11 +140,11 @@ Wire the header "Importer" button: it opens a modal to pick one or several expor
 
 **Acceptance criteria**
 
-- [ ] `Upload` (Ant Design) accepting `.xlsx`, multiple files
-- [ ] File kind detected from its columns (practitioner / contact / RDV), unknown file → error message
-- [ ] Parsed client-side with `read-excel-file`; preview shows the row count per entity before confirming
-- [ ] "Importer" sends the rows to `importData`; on failure, the row errors are listed (file, row, reason); on success, counts are shown and calendar/contact/practitioner queries are invalidated
-- [ ] Confirmation `Popconfirm` before import (it overwrites existing rows)
+- [x] `Upload` (Ant Design) accepting `.xlsx`, multiple files
+- [x] File kind detected from its columns (practitioner / contact / RDV), unknown file → error message
+- [x] Parsed client-side with `read-excel-file`; preview shows the row count per entity before confirming
+- [x] "Importer" sends the rows to `importData`; on failure, the row errors are listed (file, row, reason); on success, counts are shown and calendar/contact/practitioner queries are invalidated
+- [x] Confirmation `Popconfirm` before import (it overwrites existing rows)
 
 **Technical notes**
 

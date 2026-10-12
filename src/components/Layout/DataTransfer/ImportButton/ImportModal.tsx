@@ -49,8 +49,10 @@ export function ImportModal({ open, closeModal }: ImportModalProps) {
     ]);
   };
 
-  const removeFile = (fileName: string) =>
+  const removeFile = (fileName: string) => {
+    setRowErrors([]);
     setParsedFiles((previousFiles) => previousFiles.filter((previousFile) => previousFile.fileName !== fileName));
+  };
 
   const handleClose = () => {
     setParsedFiles([]);
@@ -136,8 +138,8 @@ export function ImportModal({ open, closeModal }: ImportModalProps) {
                     title={parsedFile.fileName}
                     description={
                       <ul className="list-disc pl-4">
-                        {parsedFile.messages.map((message) => (
-                          <li key={message}>{message}</li>
+                        {parsedFile.messages.map((message, messageIndex) => (
+                          <li key={`${parsedFile.fileName}-${messageIndex}`}>{message}</li>
                         ))}
                       </ul>
                     }
