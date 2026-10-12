@@ -21,6 +21,7 @@ const isISODate = (value: string): value is ISODate => /^\d{4}-\d{2}-\d{2}$/.tes
 
 const parisDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' });
 
+/** Return the Europe/Paris calendar date of an instant as an ISO date string. */
 export const toParisISODate = (date: Date): ISODate => {
   const formattedDate = parisDateFormatter.format(date);
   if (!isISODate(formattedDate)) throw new Error(`Unexpected Paris date format: ${formattedDate}`);

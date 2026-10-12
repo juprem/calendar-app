@@ -14,7 +14,7 @@
 | Contacts | every contact | `contacts.xlsx` (constant) |
 | Practitioners | every general practitioner | `medecins.xlsx` (constant) |
 
-Constant names overwrite the previous export only if the user saves them in the same folder (browser download).
+The 4 files are bundled in one `export_<today>.zip` (one download, so the browser never blocks a second one). Constant names overwrite the previous export when the zip is extracted into the same folder.
 
 ---
 
@@ -86,7 +86,7 @@ Wire the header "Exporter" button (currently a disabled placeholder in `Layout/D
 **Acceptance criteria**
 
 - [x] `ExportButton` component (own directory under `Layout/`, like `AddContact`) replaces the placeholder; success toast says which range the timestamped RDV file covers
-- [x] Clicking "Exporter" fetches the data, builds the 4 `.xlsx` with `write-excel-file`, downloads them with the names above, then calls `recordExport`
+- [x] Clicking "Exporter" fetches the data, builds the 4 `.xlsx` with `write-excel-file`, zips them with `fflate` into `export_<today>.zip`, downloads it, then calls `recordExport` (not called if building or downloading throws)
 - [x] Loading state on the button, error toast if anything fails (and `recordExport` is not called)
 - [x] Column headers are the camelCase field names, so the same files can be re-imported as-is (CAL-IMP-2)
 - [x] Data fetched through a new `src/services/dataTransferService.ts` hook

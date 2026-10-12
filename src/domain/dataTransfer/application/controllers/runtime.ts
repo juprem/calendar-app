@@ -19,6 +19,7 @@ export const AppLive = Layer.mergeAll(
   DayRepositoryLive,
 );
 
+/** The single composition root: binds the export/import ports and the contact, practitioner and day repositories they read from to their Live adapters. */
 export function runDataTransferEffect<Value, Failure>(
   effect: Effect.Effect<
     Value,

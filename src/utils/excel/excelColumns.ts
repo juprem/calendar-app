@@ -111,3 +111,4 @@ export const rdvSinceLastExportFileName = (sinceLastExportStart: ISODate | null,
 export const ROLLING_RDV_FILE_NAME = 'rdv_courants.xlsx';
 export const CONTACTS_FILE_NAME = 'contacts.xlsx';
 export const PRACTITIONERS_FILE_NAME = 'medecins.xlsx';
+export const exportZipFileName = (today: ISODate) => `export_${today}.zip`;

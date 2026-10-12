@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '#/configurations/trpc/react.ts';
 import { notifyErrorService, notifySuccess } from '#/domain/notifications/runtime.ts';
-import { downloadExportFiles } from '#/utils/excel/downloadExportFiles.ts';
+import { downloadExportZip } from '#/utils/excel/downloadExportZip.ts';
 import type { ImportResult } from '#/domain/dataTransfer/models.ts';
 
 const sumCounts = (counts: Extract<ImportResult, { status: 'imported' }>['counts'], key: 'created' | 'updated') =>
@@ -18,7 +18,7 @@ export const useExportData = () => {
         ...trpc.dataTransfer.getExportData.queryOptions(),
         staleTime: 0,
       });
-      await downloadExportFiles(exportData);
+      await downloadExportZip(exportData);
       await recordExport.mutateAsync({ exportedAt: exportData.exportedAt });
       return exportData;
     },

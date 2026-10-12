@@ -6,7 +6,7 @@
 
 - Round 2 (CAL-EXP-1→4, CAL-IMP-1/2, header buttons):
   - The import's Prisma transaction (array `$transaction` on PrismaNeon/Workers) has never run against a real DB (dev = prod). Try it once on a Neon branch before the first real import.
-  - The export is recorded as done once the 4 downloads are triggered; if the browser blocks some of them, the "since last export" window still moves on (the rolling file covers the last month). Not fixed — needs a UX choice (confirm step or one zip file).
+  - Round 3: the export is now one zip download, so the multiple-download block can't hit it. A browser still gives no signal when a user cancels a save dialog; the export is recorded once the download is handed to the browser.
   - Empty `day` rows created before a failed import stay behind (harmless, outside the transaction).
   - No row cap on an import; a very large file may hit Worker CPU/body limits.
   - Import row schemas are deliberately permissive (no e164/email/enum checks) so legacy rows round-trip; they don't reuse the Create schemas.
@@ -15,7 +15,6 @@
 ## Questions for UX and future evolutions
 
 - Should the last export date be visible somewhere (Exporter tooltip), now that only the success toast shows the range?
-- After an export, confirm "les 4 fichiers ont été téléchargés" before recording it, or bundle the 4 files into one zip?
 
 - RDV ranges use the RDV date; an RDV created after an export but dated before it (older than one month) is never in any file. Add a `created_at`/`updated_at` on `rdv` to export "changed since last export" instead?
 - Should import also accept files edited by hand (rows without id → always create)?
