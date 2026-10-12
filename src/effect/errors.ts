@@ -23,3 +23,7 @@ export class ContactConflictError extends Data.TaggedError('ContactConflictError
 export class ContactBirthDateRequiredError extends Data.TaggedError('ContactBirthDateRequiredError')<{
   readonly message: string;
 }> {}
+
+export class EmailSendError extends Data.TaggedError('EmailSendError')<{
+  readonly message: string;
+}> {}

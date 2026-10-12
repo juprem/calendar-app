@@ -18,6 +18,7 @@ const NAV_ITEMS = [
   { path: '/hebdomadaire', label: 'Hebdomadaire' },
   { path: '/mensuelle', label: 'Mensuelle' },
   { path: '/contacts', label: 'Contacts' },
+  { path: '/rappels', label: 'Rappels' },
 ];
 
 const CALENDAR_PATHS = ['/journaliere', '/hebdomadaire', '/mensuelle'];

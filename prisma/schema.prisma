@@ -15,19 +15,20 @@ model day {
 }
 
 model rdv {
-  id               Int      @id @default(autoincrement())
-  day_id           Int
-  start_hour       String   @db.VarChar
-  end_hour         String
-  name             String   @db.VarChar
-  rdv_type         String?  @db.VarChar
-  is_confirmed     Boolean?
-  additional_infos String?  @db.VarChar
-  confirmation_date DateTime? @db.Timestamp(6)
-  confirmation_mode String?  @db.VarChar
-  contact_id       Int?
-  contact          contact? @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
-  day              day      @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
+  id                Int         @id @default(autoincrement())
+  day_id            Int
+  start_hour        String      @db.VarChar
+  end_hour          String
+  name              String      @db.VarChar
+  rdv_type          String?     @db.VarChar
+  is_confirmed      Boolean?
+  additional_infos  String?     @db.VarChar
+  confirmation_date DateTime?   @db.Timestamp(6)
+  confirmation_mode String?     @db.VarChar
+  contact_id        Int?
+  contact           contact?    @relation(fields: [contact_id], references: [id], onUpdate: NoAction, map: "constraint_contact")
+  day               day         @relation(fields: [day_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "constraint_day")
+  email_log         email_log[]
 
   @@index([day_id], map: "index_day")
 }
@@ -54,6 +55,7 @@ model contact {
   general_practitioner_id Int?
   general_practitioner    general_practitioner? @relation(fields: [general_practitioner_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   rdv                     rdv[]
+  email_log               email_log[]
 
   @@unique([firstname, lastname, birth_date], map: "fullname_birthdate")
 }
@@ -61,4 +63,19 @@ model contact {
 model export_log {
   id          Int      @id @default(autoincrement())
   exported_at DateTime @db.Timestamptz(6)
+}
+
+model email_log {
+  id          Int      @id @default(autoincrement())
+  rdv_id      Int
+  contact_id  Int
+  target_date DateTime @db.Date
+  recipient   String?  @db.VarChar
+  status      String   @db.VarChar
+  error       String?
+  sent_at     DateTime @db.Timestamptz(6)
+  rdv         rdv      @relation(fields: [rdv_id], references: [id], onDelete: Cascade)
+  contact     contact  @relation(fields: [contact_id], references: [id], onDelete: Cascade)
+
+  @@unique([rdv_id, target_date])
 }

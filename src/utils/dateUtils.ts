@@ -19,14 +19,28 @@ export const truncateToUTCDate = (date: Date): Date => toUTCDate(date.toISOStrin
 
 const isISODate = (value: string): value is ISODate => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
+const asISODate = (value: string): ISODate => {
+  if (!isISODate(value)) throw new Error(`Unexpected ISO date format: ${value}`);
+  return value;
+};
+
 const parisDateFormatter = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' });
 
 /** Return the Europe/Paris calendar date of an instant as an ISO date string. */
-export const toParisISODate = (date: Date): ISODate => {
-  const formattedDate = parisDateFormatter.format(date);
-  if (!isISODate(formattedDate)) throw new Error(`Unexpected Paris date format: ${formattedDate}`);
-  return formattedDate;
-};
+export const toParisISODate = (date: Date): ISODate => asISODate(parisDateFormatter.format(date));
+
+const parisHourFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/Paris',
+  hour: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** Return the Europe/Paris hour (0-23) of an instant. */
+export const toParisHour = (date: Date): number => Number(parisHourFormatter.format(date));
+
+/** Return the first Monday strictly after an ISO date. */
+export const getNextMondayAfter = (isoDate: ISODate): ISODate =>
+  asISODate(getMondayOf(dayjs(isoDate)).add(7, 'day').format(ISO_DATE));
 
 /** Convert a Dayjs to a UTC midnight Date object on the same calendar day. */
 export const dayjsToUTCDate = (day: Dayjs): Date => toUTCDate(day.format(ISO_DATE));

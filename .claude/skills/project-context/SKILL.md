@@ -218,6 +218,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `/hebdomadaire` | `src/routes/_protected/hebdomadaire/index.tsx` | `WeeklyViewWrapper` |
 | `/mensuelle` | `src/routes/_protected/mensuelle/index.tsx` | `MonthlyViewWrapper` |
 | `/contacts` | `src/routes/_protected/contacts/index.tsx` | `Contacts` |
+| `/rappels` | `src/routes/_protected/rappels/index.tsx` | `Reminders` |
 | `/api/trpc/*` | `src/routes/api.trpc.$.tsx` | tRPC fetch handler |
 | `/forbidden` | `src/routes/forbidden/index.tsx` | Access denied |
 | `/sign-in` | `src/routes/sign-in/` | Clerk sign-in |
@@ -262,6 +263,10 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `generalPractitioner` | `delete` | `number` | Delete a practitioner (fails if still referenced by a contact — FK is `onDelete: NoAction`) |
 | `dataTransfer` | `getExportData` | — | Contacts, practitioners, RDV since the last export and rolling RDV (today − 1 month onward), plus `exportedAt` |
 | `dataTransfer` | `recordExport` | `RecordExportSchema` (`{ exportedAt }`, not in the future) | Insert an `export_log` row |
+| `reminder` | `getStatus` | — | Monday targeted by the latest log (else next Monday), live count of its RDV with contact, sent count, failed rows |
+| `reminder` | `resend` | `number` (email_log id) | Resend one reminder, upserts its log row |
+| `reminder` | `clearLog` | — | Delete every `email_log` row ("Valider") |
+| `reminder` | `sendTest` | — | Real Brevo email with sample params to `REMINDER_TEST_RECIPIENT` |
 | `dataTransfer` | `importData` | `ImportDataSchema` | Validate (unknown FK, duplicate id, contact identity) then upsert by id in one array `$transaction` and reset id sequences; returns `imported` counts or `rejected` row errors |
 
 - **Convention**: add new procedures to the matching domain's `application/controllers/<name>Router.ts`; for a genuinely new domain, scaffold the full `port/adapter/application` structure (see Architecture above) and register the new controller router in `src/configurations/trpc/router/router.ts`
@@ -312,6 +317,9 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 **`export_log`** — one row per export
 - `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
 
+**`email_log`** — one row per RDV reminder
+- `id`, `rdv_id` (FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; unique `(rdv_id, target_date)` so `record` upserts
+
 After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 
 > **Note**: dates are stored as a single `date` field (not separate `day/month/year` integers). Always use `new Date('YYYY-MM-DDT00:00:00.000Z')` when querying by date.
@@ -334,7 +342,7 @@ After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<
 | Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
 | Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-export-import/` |
-| Weekly reminder email (Brevo + cron) | 📝 Tickets only | `features/weekly-email/` |
+| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/weekly-email/` |
 
 ---
 
@@ -350,7 +358,8 @@ npx prisma db push    # sync schema changes to NeonDB
 npx prisma studio     # browse the database locally
 ```
 
-- **Env vars**: `DATABASE_URL` (NeonDB), `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`
+- **Env vars**: `DATABASE_URL` (NeonDB), `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`, `BREVO_API_KEY` (secret; `.env` locally); `BREVO_TEMPLATE_ID`, `REMINDER_TEST_RECIPIENT` are `vars` in `wrangler.jsonc`
+- **Reminder cron**: `0 10,11 * * SUN` (UTC), `runReminderCron` acts only at 12:00 Paris. Dev uses a console.log sender (no Brevo call) except the test-email button. Trigger locally: `curl "localhost:3000/cdn-cgi/handler/scheduled?cron=0+10,11+*+*+SUN"`
 - **Cloudflare secrets**: set via `wrangler secret put <VAR_NAME>` — never hardcode in source files
 - **Deploy config**: `wrangler.jsonc`
 - **DB config**: `prisma.config.ts`
