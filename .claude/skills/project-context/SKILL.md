@@ -314,14 +314,6 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - Relation: one `general_practitioner` → many `contact`
 - Deleting one that's still referenced by a `contact` fails at the DB level (no cascade) — the `generalPractitioner.delete` mutation surfaces this as a generic error toast, same as `contacts.deleteContact`'s behavior for RDV references
 
-<<<<<<< HEAD
-**`export_log`** — one row per export
-- `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
-
-**`email_log`** — one row per RDV reminder
-- `id`, `rdv_id` (FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; unique `(rdv_id, target_date)` so `record` upserts
-
-After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 **`export_log`** — one row per export
 - `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
 
