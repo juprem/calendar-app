@@ -1,3 +1,4 @@
+import { Spin } from 'antd';
 import { ContactListItem } from '#/components/Contacts/ContactList/ContactListItem.tsx';
 import { ListSearchInput } from '#/components/SearchableEntityList/ListSearchInput.tsx';
 import { VirtualizedList } from '#/components/VirtualizedList/VirtualizedList.tsx';
@@ -36,6 +37,11 @@ export function ContactListPanel({ selectedId, onSelect }: ContactListPanelProps
           <ContactListItem contact={contact} isSelected={contact.id === selectedId} onSelect={onSelect} />
         )}
       />
+      {isFetchingNextPage && (
+        <div className="flex justify-center py-2">
+          <Spin size="small" aria-label="Chargement des contacts suivants" />
+        </div>
+      )}
     </>
   );
 }

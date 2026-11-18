@@ -26,6 +26,7 @@ const givenSearchState = (state: { contactCount: number; hasNextPage: boolean; i
 const renderPanel = () => render(<ContactListPanel selectedId={null} onSelect={vi.fn()} />);
 
 const SCROLL_VIEWPORT_HEIGHT = 400;
+const NEXT_PAGE_LOADING_LABEL = 'Chargement des contacts suivants';
 
 describe('ContactListPanel', () => {
   beforeEach(() => {
@@ -60,6 +61,22 @@ describe('ContactListPanel', () => {
     renderPanel();
 
     expect(fetchNextPage).not.toHaveBeenCalled();
+  });
+
+  it('shows a loading indicator under the list while the next page loads', () => {
+    givenSearchState({ contactCount: 2, hasNextPage: true, isFetchingNextPage: true });
+
+    renderPanel();
+
+    expect(screen.getByLabelText(NEXT_PAGE_LOADING_LABEL)).toBeTruthy();
+  });
+
+  it('hides the loading indicator when no page is loading', () => {
+    givenSearchState({ contactCount: 2, hasNextPage: true });
+
+    renderPanel();
+
+    expect(screen.queryByLabelText(NEXT_PAGE_LOADING_LABEL)).toBeNull();
   });
 
   it('keeps the loaded contacts when a next page fails', () => {

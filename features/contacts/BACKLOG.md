@@ -2,6 +2,10 @@
 
 ## Left out by round
 
+### 2026-11-18 · Next-page loading indicator
+- **The spinner sits under the scroll area, not inside it.** While it shows, the list viewport shrinks by about 32 px. Kept there to leave the shared `VirtualizedList` untouched; add a footer slot to it if a second infinite-scroll list appears or the shrink is noticed.
+- **Not checked in the browser.** The dev server uses the prod DB; scrolling is read-only, so a manual look is safe whenever convenient.
+
 ### 2026-11-18 · Contact search on the server
 - **Selects show the first 50 matches only** (calendar filter, RDV form "Patient"). There is no scroll-to-load-more in the dropdown: a contact past the 50th match is reached by typing more of its name. Deferred to keep the Selects simple; wire `fetchNextPage` to the Select's `onPopupScroll` if users complain.
 - **The general practitioner list is still loaded whole** and filtered in the browser (§7.2). It is small, so it costs little Worker CPU. Move it to the same server search if it grows.

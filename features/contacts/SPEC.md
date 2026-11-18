@@ -85,6 +85,7 @@ contacts load when the user scrolls to the end of the list.
 - Trigger: the last loaded row of the list is rendered (scrolled into view).
 - Conditions: more matches follow and no page is already loading; otherwise nothing happens.
 - Effect: the server returns the next page, appended to the end of the list.
+- Shown: while the next page loads, a spinner shows under the list, below the loaded rows.
 - On failure: the loaded rows stay; the list shows the error state only when the first page fails.
 
 **Row**
