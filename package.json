@@ -37,7 +37,7 @@
     "@uidotdev/usehooks": "^2.4.1",
     "antd": "6.7.1",
     "dayjs": "^1.11.23",
-    "effect": "^3.22.1",
+    "effect": "^4.1.4",
     "fflate": "^0.8.3",
     "lucide-react": "1.75.0",
     "prettier": "^3.10.1",

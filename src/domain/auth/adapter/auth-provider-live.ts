@@ -11,5 +11,5 @@ export const ClerkAuthProviderLive = Layer.succeed(AuthProvider, {
         isAuthenticated: clerkAuthState.isAuthenticated,
         hasCalendarAccess: clerkAuthState.isAuthenticated && clerkAuthState.has({ role: 'calendar_access' }),
       })),
-    ).pipe(Effect.catchAll(() => Effect.succeed(SIGNED_OUT))),
+    ).pipe(Effect.catch(() => Effect.succeed(SIGNED_OUT))),
 });

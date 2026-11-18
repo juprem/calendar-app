@@ -7,7 +7,7 @@ import { toRdv, toRdvPrismaInput } from './mappers.ts';
 export const RdvRepositoryLive = Layer.succeed(RdvRepository, {
   findById: (id) =>
     Effect.tryPromise({ try: () => prisma.rdv.findUnique({ where: { id } }), catch: toDbError }).pipe(
-      Effect.map(Option.fromNullable),
+      Effect.map(Option.fromNullishOr),
       Effect.map(Option.map(toRdv)),
     ),
   findByDayId: (dayId) =>

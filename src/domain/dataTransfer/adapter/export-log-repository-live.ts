@@ -9,7 +9,7 @@ export const ExportLogRepositoryLive = Layer.succeed(ExportLogRepository, {
     Effect.tryPromise({
       try: () => prisma.export_log.findFirst({ orderBy: { exported_at: 'desc' } }),
       catch: toDbError,
-    }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toExportLog))),
+    }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toExportLog))),
   record: (exportedAt) =>
     Effect.tryPromise({
       try: () => prisma.export_log.create({ data: { exported_at: exportedAt } }),

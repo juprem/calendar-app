@@ -10,7 +10,7 @@ Status: ⚪ not started · 🟡 partly done · 🔴 deviation · ✅ done
 | ✅ | A | CAL-DEP-1 — Align Prisma and Tailwind versions | S | — |
 | ✅ | B | CAL-DEP-2 — Minor and patch updates (incl. TypeScript types) | M | CAL-DEP-1 (same lockfile) |
 | ✅ | C | CAL-DEP-3 — Other major upgrades | M | CAL-DEP-2 (same lockfile) |
-| ⚪ | D | CAL-DEP-4 — Effect 3 → 4 | M | CAL-DEP-3 (same lockfile, needs a green baseline) |
+| ✅ | D | CAL-DEP-4 — Effect 3 → 4 | M | CAL-DEP-3 (same lockfile, needs a green baseline) |
 | ⚪ | E | CAL-DEP-5 — Dependabot version updates | S | CAL-DEP-4 (start from an up-to-date baseline so the first PRs stay small) |
 
 **Check shared by every ticket:** `npx tsc --noEmit`, `npm test` and `npm run build` pass, and `npm run dev` loads the calendar, contacts and reminders pages without console errors. Dev uses the prod DB: browser checks are read-only.
@@ -112,21 +112,23 @@ Upgrade `effect` from 3.22.1 to 4.x. 76 files under `src/` import `effect`; abou
 
 | Change | Where |
 |---|---|
-| `Context.Tag('X')<Self, Shape>()` → `Context.Service<Self, Shape>()('X')` | 18 tags in 15 `src/domain/*/port/*.ts` files |
+| `Context.Tag('X')<Self, Shape>()` → `Context.Service<Self, Shape>()('X')` | 10 service classes in `src/domain/*/port/*.ts` |
+| `Context.Tag.Service<typeof X>` → `Context.Service.Shape<typeof X>` (found during the upgrade) | 8 shape aliases in the domain `testSupport.ts` files and `contact-repository-mock.ts` |
+| `Option.fromNullable` → `Option.fromNullishOr` (found during the upgrade) | 8 calls in 6 `src/domain/*/adapter/*-live.ts` files |
 | `Cause.failureOption` → `Cause.findErrorOption` | `src/effect/runEffect.ts`, `src/effect/testSupport.ts` |
-| `Cause.squash`: not documented in the guides, check it still exists | same two files |
+| `Cause.squash`: still exists in 4.x, unchanged | same two files |
 | `Effect.catchAll` → `Effect.catch` | `src/domain/auth/adapter/auth-provider-live.ts` |
 
 **Behaviour change: layers are cached across `Effect.provide` calls.** Checked: every Live adapter is a `Layer.succeed` of plain functions, and per-request work (`auth()`, Prisma calls) runs inside those functions, not at layer build time, so the cache is safe. A future adapter that reads per-request state at build time would need `Layer.fresh`.
 
 **Acceptance criteria**
 
-- [ ] `effect` on 4.x; the rest of `src/` compiles without other edits than the ones listed above (any extra rename found is added to this ticket)
-- [ ] `runEffect` keeps its behaviour: a typed failure is rethrown as the original error instance, a defect is rethrown squashed. Keep the existing tests that rely on it (`runAndExpectFailure` callers) passing unchanged
-- [ ] If `Effect.runPromise` in v4 rejects with the original error (no `FiberFailure` wrapper), propose simplifying `runEffect`/`runAndExpectFailure` as a follow-up, not in this ticket
-- [ ] Auth: a Clerk failure still resolves to the signed-out state (`getAuthState.test.ts` passes)
-- [ ] All `*.test.ts` under `src/domain/` pass with no assertion changed
-- [ ] The `effect-hexagonal` skill updated to the v4 API (`Context.Service`, `Effect.catch`)
+- [x] `effect` on 4.x; the rest of `src/` compiles without other edits than the ones listed above (any extra rename found is added to this ticket)
+- [x] `runEffect` keeps its behaviour: a typed failure is rethrown as the original error instance, a defect is rethrown squashed. Keep the existing tests that rely on it (`runAndExpectFailure` callers) passing unchanged
+- [x] If `Effect.runPromise` in v4 rejects with the original error (no `FiberFailure` wrapper), propose simplifying `runEffect`/`runAndExpectFailure` as a follow-up, not in this ticket (it does, checked on 4.1.4 for a typed failure and a defect; follow-up in BACKLOG)
+- [x] Auth: a Clerk failure still resolves to the signed-out state (`getAuthState.test.ts` passes)
+- [x] All `*.test.ts` under `src/domain/` pass with no assertion changed
+- [x] The `effect-hexagonal` skill updated to the v4 API (`Context.Service`, `Effect.catch`)
 
 ---
 

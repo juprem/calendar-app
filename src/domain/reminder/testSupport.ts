@@ -17,8 +17,8 @@ export const mockEmailLog = (overrides: Partial<EmailLog> = {}): EmailLog => ({
   ...overrides,
 });
 
-type EmailLogRepositoryShape = Context.Tag.Service<typeof EmailLogRepository>;
-type EmailSenderShape = Context.Tag.Service<typeof EmailSender>;
+type EmailLogRepositoryShape = Context.Service.Shape<typeof EmailLogRepository>;
+type EmailSenderShape = Context.Service.Shape<typeof EmailSender>;
 
 export const mockEmailLogRepository = (overrides: Partial<EmailLogRepositoryShape> = {}) =>
   Layer.succeed(EmailLogRepository, {
