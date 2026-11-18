@@ -342,8 +342,8 @@ After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |
 | Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
-| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-export-import/` |
-| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/weekly-email/` |
+| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-transfer/` |
+| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/reminders/` |
 
 ---
 
