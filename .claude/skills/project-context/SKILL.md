@@ -56,6 +56,7 @@ A graphify knowledge graph of `src/` lives in `graphify-out/` (AST-only, no LLM 
 | Deployment | Cloudflare Workers | — |
 | CLI | Wrangler | 4.70.0 |
 | Optimizer | React Compiler (Babel) | 1.0.0 |
+| Effects / DI | Effect | 4.x |
 
 **Path aliases**: Both `@/*` and `#/*` resolve to `./src/*`. Use either.
 
@@ -80,7 +81,7 @@ Browser
                            └─ Composition root  src/domain/<name>/application/controllers/runtime.ts
                                 (the ONLY place that binds a Port to its concrete Live Adapter and
                                  converts the Effect to a Promise, via #/effect/runEffect.ts)
-                                └─ Port  src/domain/<name>/port/       (Context.Tag contracts — no Prisma import)
+                                └─ Port  src/domain/<name>/port/       (Context.Service contracts — no Prisma import)
                                      └─ Adapter  src/domain/<name>/adapter/   (Prisma-backed Live layer;
                                           mappers.ts is the ONLY file per domain that imports
                                           generated/prisma/client.ts)
@@ -88,7 +89,7 @@ Browser
                                                └─ NeonDB  (PostgreSQL)
 ```
 
-All Effect plumbing — including domain-specific typed errors — lives in one place: `src/effect/`: `errors.ts` (`DbError`, `toDbError`, `NotFoundError`, and every domain error such as `RdvConflictError` and `ContactConflictError`), `runEffect.ts` (the `Cause`/`Exit`-unwrapping Promise adapter — needed because `Effect.runPromise` normally rejects with an opaque `FiberFailure` wrapper, not the real typed error), `testSupport.ts` (`runAndExpectFailure`, the test-side mirror of the same unwrapping). No domain has its own `errors.ts` — every port, adapter, mutation, and router imports error classes directly from `#/effect/errors.ts`, even ones specific to a single domain (e.g. `RdvConflictError` is only thrown by `calendar`'s `scheduleRdv`/`updateRdv`, but still lives and is imported from `#/effect/errors.ts`). This was a deliberate choice over a per-domain re-export file, to avoid every domain needing a thin `errors.ts` that just re-exports the shared errors and adds one of its own — one import path for all error types, full stop.
+All Effect plumbing — including domain-specific typed errors — lives in one place: `src/effect/`: `errors.ts` (`DbError`, `toDbError`, `NotFoundError`, and every domain error such as `RdvConflictError` and `ContactConflictError`), `runEffect.ts` (the `Cause`/`Exit`-unwrapping Promise adapter — rethrows the original typed error and squashes defects), `testSupport.ts` (`runAndExpectFailure`, the test-side mirror of the same unwrapping). No domain has its own `errors.ts` — every port, adapter, mutation, and router imports error classes directly from `#/effect/errors.ts`, even ones specific to a single domain (e.g. `RdvConflictError` is only thrown by `calendar`'s `scheduleRdv`/`updateRdv`, but still lives and is imported from `#/effect/errors.ts`). This was a deliberate choice over a per-domain re-export file, to avoid every domain needing a thin `errors.ts` that just re-exports the shared errors and adds one of its own — one import path for all error types, full stop.
 
 **Why this shape**: hand-declared domain models (`models.ts` in each domain) are deliberately NOT type aliases of Prisma's generated types, even though they're often structurally identical to them — this keeps `port`/`application` fully decoupled from the ORM. The trade-off is accepted deliberately: TypeScript won't flag domain models as stale if the Prisma schema changes; `adapter/mappers.ts` is the one place that would need updating.
 
@@ -228,7 +229,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 - Provider: Clerk, wired in `src/routes/__root.tsx`; `src/start.ts` registers `clerkMiddleware()` + CSRF middleware at the request level
 - Gate: `src/routes/_protected.tsx` — a layout route whose `beforeLoad` calls `requireCalendarAccess()`
 - Access check: `src/server/auth.ts` (`requireCalendarAccess`, a `createServerFn`) — redirects to `/sign-in` if unauthenticated, `/forbidden` if missing the `calendar_access` Clerk role
-- Auth port (ported from anime-pwa): `src/domain/auth/` — `models.ts` (`AuthState { isAuthenticated, hasCalendarAccess }`), `port/auth-provider.ts` (`AuthProvider` Context.Tag), `adapter/auth-provider-live.ts` (the **only** server-side Clerk `auth()` import; fails closed to signed-out on any error), `adapter/auth-provider-mock.ts` (`mockAuthProvider(overrides)`, defaults to signed in with access), `application/getAuthState.ts` (+ test), `runtime.ts` (`getCurrentAuthState()`). The tRPC context (`api.trpc.$.tsx`) is `{ auth: AuthState }` and `init.ts`'s middleware checks `isAuthenticated` / `hasCalendarAccess`
+- Auth port (ported from anime-pwa): `src/domain/auth/` — `models.ts` (`AuthState { isAuthenticated, hasCalendarAccess }`), `port/auth-provider.ts` (`AuthProvider` Context.Service), `adapter/auth-provider-live.ts` (the **only** server-side Clerk `auth()` import; fails closed to signed-out on any error), `adapter/auth-provider-mock.ts` (`mockAuthProvider(overrides)`, defaults to signed in with access), `application/getAuthState.ts` (+ test), `runtime.ts` (`getCurrentAuthState()`). The tRPC context (`api.trpc.$.tsx`) is `{ auth: AuthState }` and `init.ts`'s middleware checks `isAuthenticated` / `hasCalendarAccess`
 - **Mocking auth locally**: set `VITE_MOCK_AUTH=true` in the gitignored `.env`. `src/domain/auth/isMockAuth.ts` (`import.meta.env.DEV && VITE_MOCK_AUTH === 'true'`, so always `false` in `vite build`) makes `runtime.ts` use the mock and skip the dynamic import of the Clerk adapter, and makes `src/components/Layout/SignedInOnly.tsx` render the header without Clerk's `<Show when="signed-in">`. `npm run dev` is then fully usable without signing in. **The dev server talks to the real Neon DB from `.env`** — don't create test data there
 - Only users with the `calendar_access` role can reach any route nested under `_protected`
 
@@ -341,8 +342,8 @@ After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |
 | Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
-| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-export-import/` |
-| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/weekly-email/` |
+| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-transfer/` |
+| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/reminders/` |
 
 ---
 

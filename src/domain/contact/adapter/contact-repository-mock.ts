@@ -18,7 +18,7 @@ export const mockContact = (overrides: Partial<Contact> = {}): Contact => ({
   ...overrides,
 });
 
-type ContactRepositoryShape = Context.Tag.Service<typeof ContactRepository>;
+type ContactRepositoryShape = Context.Service.Shape<typeof ContactRepository>;
 
 export const mockContactRepository = (overrides: Partial<ContactRepositoryShape> = {}) =>
   Layer.succeed(ContactRepository, {

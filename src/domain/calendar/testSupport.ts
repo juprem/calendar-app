@@ -24,8 +24,8 @@ export const mockRdv = (overrides: Partial<Rdv> = {}): Rdv => ({
   ...overrides,
 });
 
-type DayRepositoryShape = Context.Tag.Service<typeof DayRepository>;
-type RdvRepositoryShape = Context.Tag.Service<typeof RdvRepository>;
+type DayRepositoryShape = Context.Service.Shape<typeof DayRepository>;
+type RdvRepositoryShape = Context.Service.Shape<typeof RdvRepository>;
 
 export const mockDayRepository = (overrides: Partial<DayRepositoryShape> = {}) =>
   Layer.succeed(DayRepository, {

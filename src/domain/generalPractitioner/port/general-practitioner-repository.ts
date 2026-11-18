@@ -2,7 +2,7 @@ import { Context, Effect, Option } from 'effect';
 import type { DbError } from '#/effect/errors.ts';
 import type { CreateGeneralPractitioner, GeneralPractitioner, UpdateGeneralPractitioner } from '../models.ts';
 
-export class GeneralPractitionerRepository extends Context.Tag('GeneralPractitionerRepository')<
+export class GeneralPractitionerRepository extends Context.Service<
   GeneralPractitionerRepository,
   {
     readonly findById: (id: number) => Effect.Effect<Option.Option<GeneralPractitioner>, DbError>;
@@ -14,4 +14,4 @@ export class GeneralPractitionerRepository extends Context.Tag('GeneralPractitio
     ) => Effect.Effect<GeneralPractitioner, DbError>;
     readonly delete: (id: number) => Effect.Effect<GeneralPractitioner, DbError>;
   }
->() {}
+>()('GeneralPractitionerRepository') {}

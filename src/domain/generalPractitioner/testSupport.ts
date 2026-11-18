@@ -12,7 +12,7 @@ export const mockGeneralPractitioner = (overrides: Partial<GeneralPractitioner> 
   ...overrides,
 });
 
-type GeneralPractitionerRepositoryShape = Context.Tag.Service<typeof GeneralPractitionerRepository>;
+type GeneralPractitionerRepositoryShape = Context.Service.Shape<typeof GeneralPractitionerRepository>;
 
 export const mockGeneralPractitionerRepository = (
   overrides: Partial<GeneralPractitionerRepositoryShape> = {},

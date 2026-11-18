@@ -1,5 +1,5 @@
 import { Spin } from 'antd';
-import { AlertCircle } from 'lucide-react';
+import { CircleExclamationPoint } from 'lucide-react';
 import type { ReactNode } from 'react';
 
 interface DataStateProps {
@@ -30,7 +30,7 @@ export function DataState({
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center h-full min-h-32 gap-3 text-[#78716C]">
-        <AlertCircle size={40} className="text-red-300" />
+        <CircleExclamationPoint size={40} className="text-red-300" />
         <p className="text-sm">Une erreur est survenue</p>
       </div>
     );

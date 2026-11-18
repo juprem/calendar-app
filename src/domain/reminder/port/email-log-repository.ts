@@ -2,7 +2,7 @@ import { Context, Effect, Option } from 'effect';
 import type { DbError } from '#/effect/errors.ts';
 import type { EmailLog, EmailLogRecord } from '../models.ts';
 
-export class EmailLogRepository extends Context.Tag('EmailLogRepository')<
+export class EmailLogRepository extends Context.Service<
   EmailLogRepository,
   {
     readonly findById: (id: number) => Effect.Effect<Option.Option<EmailLog>, DbError>;
@@ -11,4 +11,4 @@ export class EmailLogRepository extends Context.Tag('EmailLogRepository')<
     readonly record: (emailLog: EmailLogRecord) => Effect.Effect<EmailLog, DbError>;
     readonly clearAll: () => Effect.Effect<void, DbError>;
   }
->() {}
+>()('EmailLogRepository') {}

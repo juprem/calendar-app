@@ -1,4 +1,4 @@
-import { Mail, Phone, FileText, Calendar, MapPin, Home, Pencil, Trash2, Stethoscope } from 'lucide-react';
+import { Mail, Phone, FileText, Calendar, MapPin, House, Pencil, Trash, Stethoscope } from 'lucide-react';
 import { Button, Popconfirm } from 'antd';
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
 import dayjs from 'dayjs';
@@ -54,7 +54,7 @@ export function ContactDetail({ contact, onEdit, onDelete }: ContactDetailProps)
               shape="round"
               size="small"
               danger
-              icon={<Trash2 size={13} />}
+              icon={<Trash size={13} />}
               loading={isDeleting}
             />
           </Popconfirm>
@@ -91,7 +91,7 @@ export function ContactDetail({ contact, onEdit, onDelete }: ContactDetailProps)
         )}
         {address && (
           <div className="flex items-center gap-3">
-            <Home size={16} className="text-[#92400E] shrink-0" />
+            <House size={16} className="text-[#92400E] shrink-0" />
             <span className="text-sm text-[#1C1917]">{address}</span>
           </div>
         )}

@@ -8,7 +8,7 @@ const RDV_INCLUDE = { contact: true } as const;
 
 const findByDate = (date: Date) =>
   Effect.tryPromise({ try: () => prisma.day.findFirst({ where: { date } }), catch: toDbError }).pipe(
-    Effect.map(Option.fromNullable),
+    Effect.map(Option.fromNullishOr),
     Effect.map(Option.map(toDay)),
   );
 
@@ -30,7 +30,7 @@ export const DayRepositoryLive = Layer.succeed(DayRepository, {
     Effect.tryPromise({
       try: () => prisma.day.findFirst({ where: { date }, include: { rdv: { include: RDV_INCLUDE } } }),
       catch: toDbError,
-    }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toDayWithRdvs))),
+    }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toDayWithRdvs))),
   findManyWithRdvsInRange: (start, end) =>
     Effect.tryPromise({
       try: () =>

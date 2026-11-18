@@ -7,7 +7,7 @@ import { toContact, toContactPrismaInput, toRdvHistoryEntry } from './mappers.ts
 export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
   findById: (id) =>
     Effect.tryPromise({ try: () => prisma.contact.findUnique({ where: { id } }), catch: toDbError }).pipe(
-      Effect.map(Option.fromNullable),
+      Effect.map(Option.fromNullishOr),
       Effect.map(Option.map(toContact)),
     ),
   findByIdentity: (firstname, lastname, birthDate) =>
@@ -17,7 +17,7 @@ export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
           where: { firstname_lastname_birth_date: { firstname, lastname, birth_date: birthDate } },
         }),
       catch: toDbError,
-    }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toContact))),
+    }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toContact))),
   findByName: (firstname, lastname) =>
     Effect.tryPromise({
       try: () =>

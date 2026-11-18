@@ -2,7 +2,7 @@ import { Context, Effect, Option } from 'effect';
 import type { DbError } from '#/effect/errors.ts';
 import type { Contact, CreateContact, RdvHistoryEntry, UpdateContact } from '#/domain/contact/models.ts';
 
-export class ContactRepository extends Context.Tag('ContactRepository')<
+export class ContactRepository extends Context.Service<
   ContactRepository,
   {
     readonly findById: (id: number) => Effect.Effect<Option.Option<Contact>, DbError>;
@@ -18,4 +18,4 @@ export class ContactRepository extends Context.Tag('ContactRepository')<
     readonly delete: (id: number) => Effect.Effect<Contact, DbError>;
     readonly findAppointmentHistory: (contactId: number) => Effect.Effect<RdvHistoryEntry[], DbError>;
   }
->() {}
+>()('ContactRepository') {}

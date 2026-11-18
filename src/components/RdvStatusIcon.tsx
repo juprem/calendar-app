@@ -1,4 +1,4 @@
-import { CheckCircle, AlertTriangle } from 'lucide-react';
+import { CircleCheckBig, TriangleExclamationPoint } from 'lucide-react';
 
 interface RdvStatusIconProps {
   isConfirmed: boolean | null;
@@ -16,12 +16,12 @@ export function RdvStatusIcon({
   onBlockIconClass,
 }: RdvStatusIconProps) {
   if (variant === 'onBlock' && onBlockIconClass) {
-    if (isConfirmed === true)  return <CheckCircle  size={size} className={`${onBlockIconClass} shrink-0`} />;
-    if (isConfirmed === false) return <AlertTriangle size={size} strokeWidth={3} className="text-[#ff1a1a] shrink-0" />;
+    if (isConfirmed === true)  return <CircleCheckBig  size={size} className={`${onBlockIconClass} shrink-0`} />;
+    if (isConfirmed === false) return <TriangleExclamationPoint size={size} strokeWidth={3} className="text-[#ff1a1a] shrink-0" />;
     return null;
   }
 
-  if (isConfirmed === true)  return <CheckCircle  size={size} className="text-green-500 shrink-0" />;
-  if (isConfirmed === false) return <AlertTriangle size={size} strokeWidth={3} className="text-[#ff1a1a] shrink-0" />;
+  if (isConfirmed === true)  return <CircleCheckBig  size={size} className="text-green-500 shrink-0" />;
+  if (isConfirmed === false) return <TriangleExclamationPoint size={size} strokeWidth={3} className="text-[#ff1a1a] shrink-0" />;
   return null;
 }

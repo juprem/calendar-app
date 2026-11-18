@@ -9,7 +9,7 @@ export const GeneralPractitionerRepositoryLive = Layer.succeed(GeneralPractition
     Effect.tryPromise({
       try: () => prisma.general_practitioner.findUnique({ where: { id } }),
       catch: toDbError,
-    }).pipe(Effect.map(Option.fromNullable), Effect.map(Option.map(toGeneralPractitioner))),
+    }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toGeneralPractitioner))),
   findAll: () =>
     Effect.tryPromise({
       try: () => prisma.general_practitioner.findMany({ orderBy: { lastname: 'asc' } }),
