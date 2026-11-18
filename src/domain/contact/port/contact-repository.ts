@@ -13,6 +13,7 @@ export class ContactRepository extends Context.Service<
     ) => Effect.Effect<Option.Option<Contact>, DbError>;
     readonly findByName: (firstname: string, lastname: string) => Effect.Effect<Contact[], DbError>;
     readonly findAll: () => Effect.Effect<Contact[], DbError>;
+    readonly search: (query: string, offset: number, limit: number) => Effect.Effect<Contact[], DbError>;
     readonly save: (data: CreateContact & { birthDate: Date }) => Effect.Effect<Contact, DbError>;
     readonly update: (id: number, data: Omit<UpdateContact, 'id'> & { birthDate: Date }) => Effect.Effect<Contact, DbError>;
     readonly delete: (id: number) => Effect.Effect<Contact, DbError>;

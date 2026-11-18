@@ -1,9 +1,8 @@
-import { Input } from 'antd';
 import type { ReactNode } from 'react';
-import { Search } from 'lucide-react';
 import { matchesNameQuery } from '#/utils/contactUtils.ts';
-import { useDebouncedSearch } from '#/components/Contacts/hooks/useDebouncedSearch.ts';
+import { useDebouncedSearch } from '#/hooks/useDebouncedSearch.ts';
 import { VirtualizedList } from '#/components/VirtualizedList/VirtualizedList.tsx';
+import { ListSearchInput } from '#/components/SearchableEntityList/ListSearchInput.tsx';
 
 interface SearchableEntityListProps<Item> {
   items: Item[];
@@ -37,21 +36,12 @@ export function SearchableEntityList<Item>({
 
   return (
     <>
-      <div className="p-3 border-b border-[#E7E5E4]">
-        <div className="flex items-center gap-2">
-          <Input
-            prefix={<Search size={14} className="text-[#78716C]" />}
-            placeholder={searchPlaceholder}
-            value={inputValue}
-            allowClear
-            onChange={(changeEvent) => setInputValue(changeEvent.target.value)}
-            variant="filled"
-            size="small"
-            className="flex-1"
-          />
-          {headerAction}
-        </div>
-      </div>
+      <ListSearchInput
+        value={inputValue}
+        onChange={setInputValue}
+        placeholder={searchPlaceholder}
+        headerAction={headerAction}
+      />
 
       <VirtualizedList
         items={filteredItems}

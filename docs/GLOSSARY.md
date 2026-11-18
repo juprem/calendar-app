@@ -12,12 +12,14 @@ Specs link here instead of redefining a term.
 | **Confirmation status** | `isConfirmed` of an RDV: `true` ("Confirmé"), `false` ("En attente"), or unset (`null`, no status). |
 | **Conflict** | Two RDVs on the same Day whose time ranges overlap according to the conflict rule of `features/calendar/SPEC.md` §2.1. |
 | **Contact** | A patient record (civility, first name, last name, birth date, phone, email, general practitioner). Owned by `features/contacts/SPEC.md`. In the UI a contact is labelled "Patient". |
+| **Contact search** | Server search of contacts by a prefix of the first name, the last name or "first name last name", case-insensitive, returned page by page. Owned by `features/contacts/SPEC.md` §2. |
 | **Contact filter** | Contact chosen in the filter bar of the calendar views. RDVs not linked to it are dimmed. |
 | **Contact label** | `[civility ]Firstname Lastname` of a contact. When two contacts share the same label, ` · DD/MM/YYYY` (birth date) is appended to tell them apart. |
 | **Current period** | The date held by the calendar views, shared by all three: the day shown in daily view, the week containing it in weekly view, its month in monthly view. Starts on the current date when the app loads. |
 | **Day** | Stored calendar date (UTC midnight, no time) that RDVs belong to. Created on demand the first time an RDV is placed on that date. |
 | **Dimmed** | Displayed with reduced opacity and not clickable. |
 | **General practitioner (GP)** | The patient's referring doctor ("médecin traitant"), linked to a contact. Owned by `features/contacts/SPEC.md`. |
+| **Homonym** | Another contact with the same first and last name, case and surrounding spaces ignored. A contact with a homonym must have a birth date. Owned by `features/contacts/SPEC.md` §4.1. |
 | **Hour string** | Time of day as text, `HH:mm`, 24-hour, zero-padded (`08:15`, `23:45`). |
 | **ISO date** | Calendar date as text, `YYYY-MM-DD`. |
 | **RDV** | Rendez-vous: one appointment on one Day, with a start and end hour string, a name, and optional type, contact, confirmation status, confirmation date, confirmation mode and notes. |

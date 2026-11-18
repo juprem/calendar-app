@@ -4,6 +4,13 @@ import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
 import { truncateToUTCDate } from '#/utils/dateUtils.ts';
 import { GeneralPractitionerRepository } from '#/domain/generalPractitioner/port/general-practitioner-repository.ts';
 
+export const hasHomonym = (firstname: string, lastname: string, excludingContactId?: number) =>
+  Effect.gen(function* () {
+    const contactRepository = yield* ContactRepository;
+    const contactsWithSameName = yield* contactRepository.findByName(firstname, lastname);
+    return contactsWithSameName.some((contact) => contact.id !== excludingContactId);
+  });
+
 export const resolveBirthDate = (
   firstname: string,
   lastname: string,
@@ -13,11 +20,7 @@ export const resolveBirthDate = (
   Effect.gen(function* () {
     if (birthDate) return birthDate;
 
-    const contactRepository = yield* ContactRepository;
-    const contactsWithSameName = yield* contactRepository.findByName(firstname, lastname);
-    const hasHomonym = contactsWithSameName.some((contact) => contact.id !== excludingContactId);
-
-    if (hasHomonym) {
+    if (yield* hasHomonym(firstname, lastname, excludingContactId)) {
       return yield* Effect.fail(
         new ContactBirthDateRequiredError({
           message: `Un contact "${firstname} ${lastname}" existe déjà : la date de naissance est obligatoire`,

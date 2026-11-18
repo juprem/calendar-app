@@ -171,11 +171,9 @@ src/components/
 └── Contacts/                            — /contacts page; see below for the sidebar's internal split
     ├── Contacts.tsx                     — page root: fetches contacts, owns selectedId/isEditing, renders sidebar + detail panel
     ├── GeneralPractitionerFormModal.tsx — shared create/edit form modal for general_practitioner (used by both the sidebar and the contact form)
-    ├── hooks/
-    │   └── useDebouncedSearch.ts        — shared debounced search-input hook (feature-scoped, exempt from file-count convention)
     ├── ContactList/                     — the "Contacts" sidebar tab
     │   ├── ContactList.tsx              — orchestrator: owns only the Contacts/Médecins Segmented toggle
-    │   ├── ContactListPanel.tsx         — contacts search state + filtering + VirtualizedList of ContactListItem
+    │   ├── ContactListPanel.tsx         — server contact search (`useSearchContacts`, 50/page) + infinite scroll via VirtualizedList `onEndReached`
     │   └── ContactListItem.tsx          — one contact row
     ├── PractitionerList/                — the "Médecins traitants" sidebar tab — fully self-contained
     │   ├── PractitionerList.tsx         — fetches its own data, owns search + "+" create button + create/edit modal target state
@@ -192,7 +190,7 @@ src/components/
                 └── GeneralPractitionerSelectField.tsx  — inline GP picker + "create" trigger inside the contact form
 ```
 
-**Directory convention**: keep at most ~3 files directly inside a feature directory before splitting into a sub-module (see `ContactList/`, `PractitionerList/` above). A `hooks/` (or `utils/`) subdirectory scoped to one feature is exempt from that limit — see `Contacts/hooks/` and `WeeklyView/grid/hooks/`.
+**Directory convention**: keep at most ~3 files directly inside a feature directory before splitting into a sub-module (see `ContactList/`, `PractitionerList/` above). A `hooks/` (or `utils/`) subdirectory scoped to one feature is exempt from that limit — see `WeeklyView/grid/hooks/`. Hooks shared across features (`useDebouncedSearch`, `useContactSearchSelect`, `useRdvPresentation`) live in `src/hooks/`.
 
 ### Component File Map (fast lookup — see the tree above for the rest)
 
@@ -240,7 +238,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 - Root router: `src/configurations/trpc/router/router.ts` — merges each domain's controller router (`src/domain/<name>/application/controllers/<name>Router.ts`)
 - HTTP endpoint: `src/routes/api.trpc.$.tsx` — `createContext` must be `() => ({})`, never `createTRPCContext` from `@trpc/tanstack-react-query`
 - Client setup: `src/configurations/tanstack-query/root-provider.tsx` — uses `httpBatchStreamLink` + SuperJSON
-- Routers are thin adapters — validate input with Zod, then call `runCalendarEffect`/`runContactEffect`/`runGeneralPractitionerEffect` (each domain's own composition-root function in its `runtime.ts`) around an Effect. When a procedure composes real invariants (find-or-create `day`, RDV overlap conflicts, GP-existence checks), that Effect is a named function in `application/{queries,mutations}/` — the router just calls it. When a procedure is pure 1:1 delegation to a port method with no added logic (e.g. `deleteRdv`, `listAll`), it inlines a small `Effect.gen` calling the port directly in the router instead of a dedicated one-line wrapper file — a named application-layer function exists only when it earns its keep over just calling the port. This is a deliberate rule, not an inconsistency: some procedures call a named function, others inline the port, depending on whether there's real logic to name.
+- Routers are thin adapters — validate input with Zod, then call `runCalendarEffect`/`runContactEffect`/`runGeneralPractitionerEffect` (each domain's own composition-root function in its `runtime.ts`) around an Effect. When a procedure composes real invariants (find-or-create `day`, RDV overlap conflicts, GP-existence checks), that Effect is a named function in `application/{queries,mutations}/` — the router just calls it. When a procedure is pure 1:1 delegation to a port method with no added logic (e.g. `deleteRdv`, `contacts.getById`), it inlines a small `Effect.gen` calling the port directly in the router instead of a dedicated one-line wrapper file — a named application-layer function exists only when it earns its keep over just calling the port. This is a deliberate rule, not an inconsistency: some procedures call a named function, others inline the port, depending on whether there's real logic to name.
 - Each domain's router builds its `catch<Name>Errors` middleware via `catchDomainErrors(errorMappings)` from `#/effect/toTRPCError/toTRPCError.ts` (shared across all three domains) instead of hand-writing an `instanceof` cascade — each router passes only its own domain-specific `[isMatch, code]` mappings (e.g. calendar: `RdvConflictError`→`CONFLICT`, `NotFoundError`→`NOT_FOUND`; GP: just `NotFoundError`→`NOT_FOUND`). `DbError` → generic `INTERNAL_SERVER_ERROR` and the final rethrow-unchanged fallback are handled once, inside `catchDomainErrors` itself.
 
 #### Current tRPC procedures
@@ -253,7 +251,9 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `calendar` | `addRdv` | `RdvCreateSchema` | Create a new RDV (throws `CONFLICT` on overlap) |
 | `calendar` | `updateRdv` | `UpdateRdvSchema` | Update an existing RDV |
 | `calendar` | `deleteRdv` | `number` | Delete an RDV |
-| `contacts` | `listAll` | — | Fetch all contacts |
+| `contacts` | `search` | `{ search, cursor? }` (search ≤ 100 chars) | One page (50) of the contact search (prefix rule, `features/contacts/SPEC.md` §2) + `nextCursor`; used by the sidebar (infinite) and the two contact Selects (first page) |
+| `contacts` | `getById` | `number` | One contact, or null |
+| `contacts` | `hasHomonym` | `{ firstname, lastname, excludingContactId? }` | Whether another contact has that name (contact form birth-date rule) |
 | `contacts` | `addContact` | `CreateContactSchema` | Create a new contact |
 | `contacts` | `updateContact` | `UpdateContactSchema` | Update an existing contact |
 | `contacts` | `deleteContact` | `number` | Delete a contact |

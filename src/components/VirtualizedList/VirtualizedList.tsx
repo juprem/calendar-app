@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { DataState } from '#/components/DataState/DataState.tsx';
@@ -10,6 +10,7 @@ interface VirtualizedListProps<Item> {
   isLoading?: boolean;
   isError?: boolean;
   emptyText?: string;
+  onEndReached?: () => void;
 }
 
 export function VirtualizedList<Item>({
@@ -19,6 +20,7 @@ export function VirtualizedList<Item>({
   isLoading = false,
   isError = false,
   emptyText,
+  onEndReached,
 }: VirtualizedListProps<Item>) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -29,11 +31,21 @@ export function VirtualizedList<Item>({
     overscan: 5,
   });
 
+  const virtualRows = virtualizer.getVirtualItems();
+  const lastRenderedIndex = virtualRows.at(-1)?.index;
+  const isLastItemRendered = lastRenderedIndex !== undefined && lastRenderedIndex === items.length - 1;
+
+  const notifyEndReached = useEffectEvent(() => onEndReached?.());
+
+  useEffect(() => {
+    if (isLastItemRendered) notifyEndReached();
+  }, [isLastItemRendered, items.length]);
+
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
       <DataState isLoading={isLoading} isError={isError} isEmpty={items.length === 0} emptyText={emptyText}>
         <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
-          {virtualizer.getVirtualItems().map((virtualRow) => (
+          {virtualRows.map((virtualRow) => (
             <div
               key={virtualRow.key}
               data-index={virtualRow.index}

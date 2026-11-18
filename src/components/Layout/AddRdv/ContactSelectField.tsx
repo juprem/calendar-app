@@ -1,6 +1,6 @@
 import { Form, Select } from 'antd';
 import dayjs from 'dayjs';
-import { useGetAllContacts } from '#/services/contactService.ts';
+import { useContactSearchSelect } from '#/hooks/useContactSearchSelect.ts';
 import { findHomonymIds, formatContactName } from '#/utils/contactUtils.ts';
 
 interface ContactSelectFieldProps {
@@ -8,7 +8,9 @@ interface ContactSelectFieldProps {
 }
 
 export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps) {
-  const { data: contacts = [] } = useGetAllContacts();
+  const form = Form.useFormInstance();
+  const selectedContactId: number | undefined = Form.useWatch('contactId', form);
+  const { contacts, onSearch, isFetching } = useContactSearchSelect(selectedContactId);
   const homonymIds = findHomonymIds(contacts);
 
   const options = contacts.map((contact) => ({
@@ -28,10 +30,8 @@ export function ContactSelectField({ onContactSelect }: ContactSelectFieldProps)
       <Select
         placeholder="Sélectionner un contact"
         allowClear
-        showSearch
-        filterOption={(searchInput, option) =>
-          String(option?.label ?? '').toLowerCase().includes(searchInput.toLowerCase())
-        }
+        showSearch={{ filterOption: false, onSearch }}
+        loading={isFetching}
         options={options}
         onChange={handleChange}
       />

@@ -11,11 +11,11 @@ RDV form and detail modal. Terms are defined in `docs/GLOSSARY.md`. History in `
 | 2.3 | Update an RDV | Specced |
 | 2.4 | Delete an RDV | Specced |
 | 2.5 | Read RDVs by period | Shipped |
-| 3 | RDV presentation and contact filter | Shipped |
+| 3 | RDV presentation and contact filter | Specced |
 | 4 | Daily view | Shipped |
 | 5 | Weekly view | Specced |
 | 6 | Monthly view | Shipped |
-| 7.1 | RDV form | Shipped |
+| 7.1 | RDV form | Specced |
 | 7.2 | RDV detail modal | Shipped |
 
 Every server call in this spec requires a signed-in user with calendar access. Otherwise the
@@ -196,7 +196,7 @@ The rules of §2.2, plus `id`: integer.
 ---
 
 ## 3 RDV presentation and contact filter
-**Status:** Shipped · **Refs:** —
+**Status:** Specced · **Refs:** —
 
 Rules shared by the three calendar views.
 
@@ -207,8 +207,10 @@ Rules shared by the three calendar views.
 
 **Contact filter**
 - Where: a filter bar shown on the three calendar views only.
-- Control: a searchable select of every contact (case-insensitive substring match on the contact
-  label), clearable, placeholder "Filtrer par patient".
+- Control: a select searched on the server with the contact search (`features/contacts/SPEC.md`
+  §2), clearable, placeholder "Filtrer par patient". It lists the first page of matches only and
+  does not load more on scroll; with an empty search it lists the first page of every contact.
+- The chosen contact's contact label stays shown while it is not among the current matches.
 - Effect: while a contact is chosen, every RDV whose `contactId` is not that contact, including
   RDVs with no contact, is dimmed. No RDV is hidden.
 - The filter is kept when switching between calendar views.
@@ -363,7 +365,7 @@ Route `/mensuelle`. Shows the month of the current period as a grid of weeks, Mo
 ---
 
 ## 7.1 RDV form
-**Status:** Shipped · **Refs:** [OPEN q.7]
+**Status:** Specced · **Refs:** [OPEN q.7]
 
 One form used to create and to edit an RDV.
 
@@ -383,7 +385,7 @@ One form used to create and to edit an RDV.
 
 | Label | Control | Required | Initial value | Sent as |
 |---|---|---|---|---|
-| "Patient (contact)" | searchable select of contacts by contact label, clearable, placeholder "Sélectionner un contact" | no | empty | `contactId`, null when empty |
+| "Patient (contact)" | select searched on the server with the contact search (`features/contacts/SPEC.md` §2), first page of matches only, clearable, placeholder "Sélectionner un contact" | no | empty; in edit, the RDV's contact, its contact label shown | `contactId`, null when empty |
 | "Nom" | text, placeholder "Nom du rendez-vous" | yes | empty | `name` |
 | "Date" | date picker `DD/MM/YYYY` | yes | empty | RDV date, ISO date |
 | "Horaires" | time range picker `HH:mm`, form step, placeholders "Début" / "Fin" | yes | empty | `startHour`, `endHour` |
@@ -395,6 +397,8 @@ One form used to create and to edit an RDV.
 
 - Choosing a contact replaces "Nom" with the contact's civility, first and last name. Clearing
   the contact leaves "Nom" unchanged.
+- The birth date suffix of the contact label is added when another listed match has the same
+  label; a homonym outside the listed matches does not count.
 - The form has no inline contact creation.
 
 **Submit**

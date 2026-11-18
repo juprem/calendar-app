@@ -2,7 +2,7 @@ import { Effect, Layer, Option } from 'effect';
 import { prisma } from '#/db.ts';
 import { toDbError } from '#/effect/errors.ts';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
-import { toContact, toContactPrismaInput, toRdvHistoryEntry } from './mappers.ts';
+import { toContact, toContactNameSearchWhere, toContactPrismaInput, toRdvHistoryEntry } from './mappers.ts';
 
 export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
   findById: (id) =>
@@ -33,6 +33,17 @@ export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
     Effect.tryPromise({ try: () => prisma.contact.findMany({ orderBy: { lastname: 'asc' } }), catch: toDbError }).pipe(
       Effect.map((contacts) => contacts.map(toContact)),
     ),
+  search: (query, offset, limit) =>
+    Effect.tryPromise({
+      try: () =>
+        prisma.contact.findMany({
+          where: toContactNameSearchWhere(query),
+          orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }, { id: 'asc' }],
+          skip: offset,
+          take: limit,
+        }),
+      catch: toDbError,
+    }).pipe(Effect.map((contacts) => contacts.map(toContact))),
   save: (data) =>
     Effect.tryPromise({ try: () => prisma.contact.create({ data: toContactPrismaInput(data) }), catch: toDbError }).pipe(
       Effect.map(toContact),

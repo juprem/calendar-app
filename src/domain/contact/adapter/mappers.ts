@@ -1,4 +1,4 @@
-import type { contact, rdv } from '../../../../generated/prisma/client.ts';
+import type { contact, Prisma, rdv } from '../../../../generated/prisma/client.ts';
 import type { Contact, CreateContact, RdvHistoryEntry, UpdateContact } from '../models.ts';
 // calendar owns toRdvWithContact; reused here rather than re-mapping every rdv field — calendar's mapper
 // reuses toContact above for the same reason. An intentional two-file cycle, safe: pure functions only,
@@ -38,3 +38,19 @@ export const toRdvHistoryEntry = (
   ...toRdvWithContact(rdvRow),
   day: { date: rdvRow.day.date },
 });
+
+/** Prisma filter for the contact search rule of features/contacts/SPEC.md §2, the server mirror of `matchesNameQuery` in `#/utils/contactUtils.ts`: case-insensitive prefix of the first name, the last name, or "first name last name" (one alternative per space in the query). */
+export const toContactNameSearchWhere = (query: string): Prisma.contactWhereInput => {
+  if (query === '') return {};
+  const fullNameAlternatives = [...query.matchAll(/ /g)].map((spaceMatch) => ({
+    firstname: { equals: query.slice(0, spaceMatch.index), mode: 'insensitive' as const },
+    lastname: { startsWith: query.slice(spaceMatch.index + 1), mode: 'insensitive' as const },
+  }));
+  return {
+    OR: [
+      { firstname: { startsWith: query, mode: 'insensitive' } },
+      { lastname: { startsWith: query, mode: 'insensitive' } },
+      ...fullNameAlternatives,
+    ],
+  };
+};
