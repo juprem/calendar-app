@@ -1,5 +1,5 @@
 import { Effect, Layer } from 'effect';
-import { prisma } from '#/db.ts';
+import { Prisma } from '#/db.ts';
 import { toDbError } from '#/effect/errors.ts';
 import { truncateToUTCDate } from '#/utils/dateUtils.ts';
 import { DataImportRepository } from '../port/data-import-repository.ts';
@@ -17,46 +17,52 @@ const toCount = (importedIds: number[], existingRows: { id: number }[]): ImportC
   return { created: importedIds.length - updated, updated };
 };
 
-export const DataImportRepositoryLive = Layer.succeed(DataImportRepository, {
-  applyImport: (data) =>
-    Effect.tryPromise({
-      try: async () => {
-        const practitionerIds = data.practitioners.map((row) => row.id);
-        const contactIds = data.contacts.map((row) => row.id);
-        const rdvIds = data.rdvs.map((row) => row.id);
+export const DataImportRepositoryLive = Layer.effect(
+  DataImportRepository,
+  Effect.gen(function* () {
+    const prisma = yield* Prisma;
+    return {
+      applyImport: (data) =>
+        Effect.tryPromise({
+          try: async () => {
+            const practitionerIds = data.practitioners.map((row) => row.id);
+            const contactIds = data.contacts.map((row) => row.id);
+            const rdvIds = data.rdvs.map((row) => row.id);
 
-        const [existingPractitioners, existingContacts, existingRdvs] = await Promise.all([
-          prisma.general_practitioner.findMany({ where: { id: { in: practitionerIds } }, select: { id: true } }),
-          prisma.contact.findMany({ where: { id: { in: contactIds } }, select: { id: true } }),
-          prisma.rdv.findMany({ where: { id: { in: rdvIds } }, select: { id: true } }),
-        ]);
+            const [existingPractitioners, existingContacts, existingRdvs] = await Promise.all([
+              prisma.general_practitioner.findMany({ where: { id: { in: practitionerIds } }, select: { id: true } }),
+              prisma.contact.findMany({ where: { id: { in: contactIds } }, select: { id: true } }),
+              prisma.rdv.findMany({ where: { id: { in: rdvIds } }, select: { id: true } }),
+            ]);
 
-        const distinctRdvDates = [...new Set(data.rdvs.map((row) => truncateToUTCDate(row.date).getTime()))].map(
-          (timestamp) => new Date(timestamp),
-        );
-        await prisma.day.createMany({ data: distinctRdvDates.map((date) => ({ date })), skipDuplicates: true });
-        const days = await prisma.day.findMany({ where: { date: { in: distinctRdvDates } } });
-        const dayIdByTimestamp = new Map(days.map((day) => [day.date.getTime(), day.id]));
+            const distinctRdvDates = [...new Set(data.rdvs.map((row) => truncateToUTCDate(row.date).getTime()))].map(
+              (timestamp) => new Date(timestamp),
+            );
+            await prisma.day.createMany({ data: distinctRdvDates.map((date) => ({ date })), skipDuplicates: true });
+            const days = await prisma.day.findMany({ where: { date: { in: distinctRdvDates } } });
+            const dayIdByTimestamp = new Map(days.map((day) => [day.date.getTime(), day.id]));
 
-        const findDayId = (date: Date): number => {
-          const dayId = dayIdByTimestamp.get(truncateToUTCDate(date).getTime());
-          if (dayId === undefined) throw new Error(`Day row missing for ${date.toISOString()}`);
-          return dayId;
-        };
+            const findDayId = (date: Date): number => {
+              const dayId = dayIdByTimestamp.get(truncateToUTCDate(date).getTime());
+              if (dayId === undefined) throw new Error(`Day row missing for ${date.toISOString()}`);
+              return dayId;
+            };
 
-        await prisma.$transaction([
-          ...data.practitioners.map((row) => prisma.general_practitioner.upsert(toPractitionerUpsertArgs(row))),
-          ...data.contacts.map((row) => prisma.contact.upsert(toContactUpsertArgs(row))),
-          ...data.rdvs.map((row) => prisma.rdv.upsert(toRdvUpsertArgs(row, findDayId(row.date)))),
-          ...SEQUENCED_TABLES.map((tableName) => prisma.$executeRawUnsafe(resetSequenceStatement(tableName))),
-        ]);
+            await prisma.$transaction([
+              ...data.practitioners.map((row) => prisma.general_practitioner.upsert(toPractitionerUpsertArgs(row))),
+              ...data.contacts.map((row) => prisma.contact.upsert(toContactUpsertArgs(row))),
+              ...data.rdvs.map((row) => prisma.rdv.upsert(toRdvUpsertArgs(row, findDayId(row.date)))),
+              ...SEQUENCED_TABLES.map((tableName) => prisma.$executeRawUnsafe(resetSequenceStatement(tableName))),
+            ]);
 
-        return {
-          practitioners: toCount(practitionerIds, existingPractitioners),
-          contacts: toCount(contactIds, existingContacts),
-          rdvs: toCount(rdvIds, existingRdvs),
-        };
-      },
-      catch: toDbError,
-    }),
-});
+            return {
+              practitioners: toCount(practitionerIds, existingPractitioners),
+              contacts: toCount(contactIds, existingContacts),
+              rdvs: toCount(rdvIds, existingRdvs),
+            };
+          },
+          catch: toDbError,
+        }),
+    };
+  }),
+);

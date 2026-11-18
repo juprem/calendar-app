@@ -1,70 +1,78 @@
 import { Effect, Layer, Option } from 'effect';
-import { prisma } from '#/db.ts';
+import { Prisma } from '#/db.ts';
 import { toDbError } from '#/effect/errors.ts';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
 import { toContact, toContactNameSearchWhere, toContactPrismaInput, toRdvHistoryEntry } from './mappers.ts';
 
-export const ContactRepositoryLive = Layer.succeed(ContactRepository, {
-  findById: (id) =>
-    Effect.tryPromise({ try: () => prisma.contact.findUnique({ where: { id } }), catch: toDbError }).pipe(
-      Effect.map(Option.fromNullishOr),
-      Effect.map(Option.map(toContact)),
-    ),
-  findByIdentity: (firstname, lastname, birthDate) =>
-    Effect.tryPromise({
-      try: () =>
-        prisma.contact.findUnique({
-          where: { firstname_lastname_birth_date: { firstname, lastname, birth_date: birthDate } },
-        }),
-      catch: toDbError,
-    }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toContact))),
-  findByName: (firstname, lastname) =>
-    Effect.tryPromise({
-      try: () =>
-        prisma.contact.findMany({
-          where: {
-            firstname: { equals: firstname.trim(), mode: 'insensitive' },
-            lastname: { equals: lastname.trim(), mode: 'insensitive' },
-          },
-        }),
-      catch: toDbError,
-    }).pipe(Effect.map((contacts) => contacts.map(toContact))),
-  findAll: () =>
-    Effect.tryPromise({ try: () => prisma.contact.findMany({ orderBy: { lastname: 'asc' } }), catch: toDbError }).pipe(
-      Effect.map((contacts) => contacts.map(toContact)),
-    ),
-  search: (query, offset, limit) =>
-    Effect.tryPromise({
-      try: () =>
-        prisma.contact.findMany({
-          where: toContactNameSearchWhere(query),
-          orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }, { id: 'asc' }],
-          skip: offset,
-          take: limit,
-        }),
-      catch: toDbError,
-    }).pipe(Effect.map((contacts) => contacts.map(toContact))),
-  save: (data) =>
-    Effect.tryPromise({ try: () => prisma.contact.create({ data: toContactPrismaInput(data) }), catch: toDbError }).pipe(
-      Effect.map(toContact),
-    ),
-  update: (id, data) =>
-    Effect.tryPromise({
-      try: () => prisma.contact.update({ where: { id }, data: toContactPrismaInput(data) }),
-      catch: toDbError,
-    }).pipe(Effect.map(toContact)),
-  delete: (id) =>
-    Effect.tryPromise({ try: () => prisma.contact.delete({ where: { id } }), catch: toDbError }).pipe(
-      Effect.map(toContact),
-    ),
-  findAppointmentHistory: (contactId) =>
-    Effect.tryPromise({
-      try: () =>
-        prisma.rdv.findMany({
-          where: { contact_id: contactId },
-          include: { day: { select: { date: true } }, contact: true },
-          orderBy: [{ day: { date: 'asc' } }, { start_hour: 'desc' }],
-        }),
-      catch: toDbError,
-    }).pipe(Effect.map((rdvs) => rdvs.map(toRdvHistoryEntry))),
-});
+export const ContactRepositoryLive = Layer.effect(
+  ContactRepository,
+  Effect.gen(function* () {
+    const prisma = yield* Prisma;
+    return {
+      findById: (id) =>
+        Effect.tryPromise({ try: () => prisma.contact.findUnique({ where: { id } }), catch: toDbError }).pipe(
+          Effect.map(Option.fromNullishOr),
+          Effect.map(Option.map(toContact)),
+        ),
+      findByIdentity: (firstname, lastname, birthDate) =>
+        Effect.tryPromise({
+          try: () =>
+            prisma.contact.findUnique({
+              where: { firstname_lastname_birth_date: { firstname, lastname, birth_date: birthDate } },
+            }),
+          catch: toDbError,
+        }).pipe(Effect.map(Option.fromNullishOr), Effect.map(Option.map(toContact))),
+      findByName: (firstname, lastname) =>
+        Effect.tryPromise({
+          try: () =>
+            prisma.contact.findMany({
+              where: {
+                firstname: { equals: firstname.trim(), mode: 'insensitive' },
+                lastname: { equals: lastname.trim(), mode: 'insensitive' },
+              },
+            }),
+          catch: toDbError,
+        }).pipe(Effect.map((contacts) => contacts.map(toContact))),
+      findAll: () =>
+        Effect.tryPromise({
+          try: () => prisma.contact.findMany({ orderBy: { lastname: 'asc' } }),
+          catch: toDbError,
+        }).pipe(Effect.map((contacts) => contacts.map(toContact))),
+      search: (query, offset, limit) =>
+        Effect.tryPromise({
+          try: () =>
+            prisma.contact.findMany({
+              where: toContactNameSearchWhere(query),
+              orderBy: [{ lastname: 'asc' }, { firstname: 'asc' }, { id: 'asc' }],
+              skip: offset,
+              take: limit,
+            }),
+          catch: toDbError,
+        }).pipe(Effect.map((contacts) => contacts.map(toContact))),
+      save: (data) =>
+        Effect.tryPromise({
+          try: () => prisma.contact.create({ data: toContactPrismaInput(data) }),
+          catch: toDbError,
+        }).pipe(Effect.map(toContact)),
+      update: (id, data) =>
+        Effect.tryPromise({
+          try: () => prisma.contact.update({ where: { id }, data: toContactPrismaInput(data) }),
+          catch: toDbError,
+        }).pipe(Effect.map(toContact)),
+      delete: (id) =>
+        Effect.tryPromise({ try: () => prisma.contact.delete({ where: { id } }), catch: toDbError }).pipe(
+          Effect.map(toContact),
+        ),
+      findAppointmentHistory: (contactId) =>
+        Effect.tryPromise({
+          try: () =>
+            prisma.rdv.findMany({
+              where: { contact_id: contactId },
+              include: { day: { select: { date: true } }, contact: true },
+              orderBy: [{ day: { date: 'asc' } }, { start_hour: 'desc' }],
+            }),
+          catch: toDbError,
+        }).pipe(Effect.map((rdvs) => rdvs.map(toRdvHistoryEntry))),
+    };
+  }),
+);

@@ -1,4 +1,5 @@
 import { Effect, Layer } from 'effect';
+import { PrismaLive } from '#/db.ts';
 import { DayRepositoryLive } from '#/domain/calendar/adapter/day-repository-live.ts';
 import type { DayRepository } from '#/domain/calendar/port/day-repository.ts';
 import { ContactRepositoryLive } from '#/domain/contact/adapter/contact-repository-live.ts';
@@ -17,7 +18,7 @@ export const AppLive = Layer.mergeAll(
   ContactRepositoryLive,
   GeneralPractitionerRepositoryLive,
   DayRepositoryLive,
-);
+).pipe(Layer.provide(PrismaLive));
 
 /** The single composition root: binds the export/import ports and the contact, practitioner and day repositories they read from to their Live adapters. */
 export function runDataTransferEffect<Value, Failure>(
