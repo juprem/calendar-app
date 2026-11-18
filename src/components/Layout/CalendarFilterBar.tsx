@@ -1,16 +1,16 @@
 import { Select } from 'antd';
-import { useGetAllContacts } from '#/services/contactService.ts';
+import { useContactSearchSelect } from '#/hooks/useContactSearchSelect.ts';
 import { useCalendarStore } from '#/store/calendarStore.ts';
 import { formatContactName } from '#/utils/contactUtils.ts';
 
 export function CalendarFilterBar() {
-  const { data: contacts = [] } = useGetAllContacts();
   const contactFilter = useCalendarStore((s) => s.contactFilter);
   const setContactFilter = useCalendarStore((s) => s.setContactFilter);
+  const { contacts, onSearch, isFetching } = useContactSearchSelect(contactFilter);
 
-  const options = contacts.map((c) => ({
-    value: c.id,
-    label: formatContactName(c),
+  const options = contacts.map((contact) => ({
+    value: contact.id,
+    label: formatContactName(contact),
   }));
 
   return (
@@ -19,11 +19,9 @@ export function CalendarFilterBar() {
       size="small"
       placeholder="Filtrer par patient"
       allowClear
-      showSearch
+      showSearch={{ filterOption: false, onSearch }}
+      loading={isFetching}
       value={contactFilter ?? undefined}
-      filterOption={(input, opt) =>
-        String(opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
-      }
       options={options}
       onChange={(val) => setContactFilter(val ?? null)}
     />

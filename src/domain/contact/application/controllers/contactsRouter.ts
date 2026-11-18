@@ -1,10 +1,12 @@
-import { Effect } from 'effect';
+import { Effect, Option } from 'effect';
 import { protectedProcedure } from '#/configurations/trpc/init.ts';
-import { CreateContactSchema, UpdateContactSchema } from '#/domain/contact/models.ts';
+import { CreateContactSchema, HasHomonymSchema, SearchContactsSchema, UpdateContactSchema } from '#/domain/contact/models.ts';
 import z from 'zod';
 import { ContactRepository } from '#/domain/contact/port/contact-repository.ts';
 import { createContact } from '#/domain/contact/application/mutations/createContact/createContact.ts';
 import { updateContact } from '#/domain/contact/application/mutations/updateContact/updateContact.ts';
+import { hasHomonym } from '#/domain/contact/application/mutations/contactConstraints/contactConstraints.ts';
+import { searchContacts } from '#/domain/contact/application/queries/searchContacts/searchContacts.ts';
 import { ContactBirthDateRequiredError, ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { catchDomainErrors } from '#/effect/toTRPCError/toTRPCError.ts';
 import { runContactEffect } from '#/domain/contact/application/controllers/runtime.ts';
@@ -21,14 +23,22 @@ const catchContactErrors = catchDomainErrors([
 const contactProcedure = protectedProcedure.use(catchContactErrors);
 
 export const contactsRouter = {
-  listAll: contactProcedure.query(() =>
+  search: contactProcedure
+    .input(SearchContactsSchema)
+    .query(({ input }) => runContactEffect(searchContacts(input.search, input.cursor ?? 0))),
+  getById: contactProcedure.input(z.number().int()).query(({ input }) =>
     runContactEffect(
       Effect.gen(function* () {
         const contactRepository = yield* ContactRepository;
-        return yield* contactRepository.findAll();
+        return Option.getOrNull(yield* contactRepository.findById(input));
       }),
     ),
   ),
+  hasHomonym: contactProcedure
+    .input(HasHomonymSchema)
+    .query(({ input }) =>
+      runContactEffect(hasHomonym(input.firstname, input.lastname, input.excludingContactId)),
+    ),
   addContact: contactProcedure.input(CreateContactSchema).mutation(({ input }) => runContactEffect(createContact(input))),
   updateContact: contactProcedure.input(UpdateContactSchema).mutation(({ input }) => {
     const { id, ...data } = input;

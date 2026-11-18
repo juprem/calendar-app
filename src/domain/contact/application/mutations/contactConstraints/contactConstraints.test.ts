@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ContactBirthDateRequiredError, ContactConflictError, NotFoundError } from '#/effect/errors.ts';
 import { mockContact, mockContactRepository, runAndExpectFailure } from '#/domain/contact/testSupport.ts';
 import { mockGeneralPractitioner, mockGeneralPractitionerRepository } from '#/domain/generalPractitioner/testSupport.ts';
-import { ensureGeneralPractitionerExists, ensureIdentityIsAvailable, resolveBirthDate } from './contactConstraints.ts';
+import { ensureGeneralPractitionerExists, ensureIdentityIsAvailable, hasHomonym, resolveBirthDate } from './contactConstraints.ts';
 
 const birthDate = new Date('1867-11-07T00:00:00.000Z');
 
@@ -100,5 +100,32 @@ describe('ensureGeneralPractitionerExists', () => {
     const error = await runAndExpectFailure(ensureGeneralPractitionerExists(1).pipe(Effect.provide(layer)));
 
     expect(error).toBeInstanceOf(NotFoundError);
+  });
+});
+
+describe('hasHomonym', () => {
+  const runHasHomonym = (contactsWithSameName: ReturnType<typeof mockContact>[], excludingContactId?: number) =>
+    Effect.runPromise(
+      hasHomonym('Marie', 'Curie', excludingContactId).pipe(
+        Effect.provide(mockContactRepository({ findByName: () => Effect.succeed(contactsWithSameName) })),
+      ),
+    );
+
+  it('is true when another contact has the same name', async () => {
+    expect(await runHasHomonym([mockContact({ id: 2 })])).toBe(true);
+  });
+
+  it('is false when the only contact with that name is the excluded one', async () => {
+    expect(await runHasHomonym([mockContact({ id: 2 })], 2)).toBe(false);
+  });
+
+  it('is false when no contact has that name', async () => {
+    expect(await runHasHomonym([])).toBe(false);
+  });
+
+  it('looks contacts up by the given first and last name', async () => {
+    const findByName = vi.fn(() => Effect.succeed([]));
+    await Effect.runPromise(hasHomonym('Marie', 'Curie').pipe(Effect.provide(mockContactRepository({ findByName }))));
+    expect(findByName).toHaveBeenCalledWith('Marie', 'Curie');
   });
 });

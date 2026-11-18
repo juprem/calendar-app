@@ -33,20 +33,6 @@ export const findHomonymIds = (contacts: readonly (ContactNameInput & { id: numb
   return new Set(homonymContacts.map((contact) => contact.id));
 };
 
-/** Whether another contact (than `excludingContactId`) already has this firstname + lastname (case and spaces ignored). */
-export const hasHomonym = (
-  contacts: readonly (ContactNameInput & { id: number })[],
-  firstname: string,
-  lastname: string,
-  excludingContactId?: number,
-): boolean => {
-  const nameKey = toContactNameKey(firstname, lastname);
-  return contacts.some(
-    (contact) =>
-      contact.id !== excludingContactId && toContactNameKey(contact.firstname, contact.lastname) === nameKey,
-  );
-};
-
 /**
  * Check whether a firstname/lastname pair matches a search query.
  * Matches on firstname, lastname, or full name, each as a prefix.

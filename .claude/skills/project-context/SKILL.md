@@ -56,6 +56,7 @@ A graphify knowledge graph of `src/` lives in `graphify-out/` (AST-only, no LLM 
 | Deployment | Cloudflare Workers | — |
 | CLI | Wrangler | 4.70.0 |
 | Optimizer | React Compiler (Babel) | 1.0.0 |
+| Effects / DI | Effect | 4.x |
 
 **Path aliases**: Both `@/*` and `#/*` resolve to `./src/*`. Use either.
 
@@ -80,7 +81,7 @@ Browser
                            └─ Composition root  src/domain/<name>/application/controllers/runtime.ts
                                 (the ONLY place that binds a Port to its concrete Live Adapter and
                                  converts the Effect to a Promise, via #/effect/runEffect.ts)
-                                └─ Port  src/domain/<name>/port/       (Context.Tag contracts — no Prisma import)
+                                └─ Port  src/domain/<name>/port/       (Context.Service contracts — no Prisma import)
                                      └─ Adapter  src/domain/<name>/adapter/   (Prisma-backed Live layer;
                                           mappers.ts is the ONLY file per domain that imports
                                           generated/prisma/client.ts)
@@ -88,7 +89,7 @@ Browser
                                                └─ NeonDB  (PostgreSQL)
 ```
 
-All Effect plumbing — including domain-specific typed errors — lives in one place: `src/effect/`: `errors.ts` (`DbError`, `toDbError`, `NotFoundError`, and every domain error such as `RdvConflictError` and `ContactConflictError`), `runEffect.ts` (the `Cause`/`Exit`-unwrapping Promise adapter — needed because `Effect.runPromise` normally rejects with an opaque `FiberFailure` wrapper, not the real typed error), `testSupport.ts` (`runAndExpectFailure`, the test-side mirror of the same unwrapping). No domain has its own `errors.ts` — every port, adapter, mutation, and router imports error classes directly from `#/effect/errors.ts`, even ones specific to a single domain (e.g. `RdvConflictError` is only thrown by `calendar`'s `scheduleRdv`/`updateRdv`, but still lives and is imported from `#/effect/errors.ts`). This was a deliberate choice over a per-domain re-export file, to avoid every domain needing a thin `errors.ts` that just re-exports the shared errors and adds one of its own — one import path for all error types, full stop.
+All Effect plumbing — including domain-specific typed errors — lives in one place: `src/effect/`: `errors.ts` (`DbError`, `toDbError`, `NotFoundError`, and every domain error such as `RdvConflictError` and `ContactConflictError`), `runEffect.ts` (the `Cause`/`Exit`-unwrapping Promise adapter — rethrows the original typed error and squashes defects), `testSupport.ts` (`runAndExpectFailure`, the test-side mirror of the same unwrapping). No domain has its own `errors.ts` — every port, adapter, mutation, and router imports error classes directly from `#/effect/errors.ts`, even ones specific to a single domain (e.g. `RdvConflictError` is only thrown by `calendar`'s `scheduleRdv`/`updateRdv`, but still lives and is imported from `#/effect/errors.ts`). This was a deliberate choice over a per-domain re-export file, to avoid every domain needing a thin `errors.ts` that just re-exports the shared errors and adds one of its own — one import path for all error types, full stop.
 
 **Why this shape**: hand-declared domain models (`models.ts` in each domain) are deliberately NOT type aliases of Prisma's generated types, even though they're often structurally identical to them — this keeps `port`/`application` fully decoupled from the ORM. The trade-off is accepted deliberately: TypeScript won't flag domain models as stale if the Prisma schema changes; `adapter/mappers.ts` is the one place that would need updating.
 
@@ -170,11 +171,9 @@ src/components/
 └── Contacts/                            — /contacts page; see below for the sidebar's internal split
     ├── Contacts.tsx                     — page root: fetches contacts, owns selectedId/isEditing, renders sidebar + detail panel
     ├── GeneralPractitionerFormModal.tsx — shared create/edit form modal for general_practitioner (used by both the sidebar and the contact form)
-    ├── hooks/
-    │   └── useDebouncedSearch.ts        — shared debounced search-input hook (feature-scoped, exempt from file-count convention)
     ├── ContactList/                     — the "Contacts" sidebar tab
     │   ├── ContactList.tsx              — orchestrator: owns only the Contacts/Médecins Segmented toggle
-    │   ├── ContactListPanel.tsx         — contacts search state + filtering + VirtualizedList of ContactListItem
+    │   ├── ContactListPanel.tsx         — server contact search (`useSearchContacts`, 50/page) + infinite scroll via VirtualizedList `onEndReached`
     │   └── ContactListItem.tsx          — one contact row
     ├── PractitionerList/                — the "Médecins traitants" sidebar tab — fully self-contained
     │   ├── PractitionerList.tsx         — fetches its own data, owns search + "+" create button + create/edit modal target state
@@ -191,7 +190,7 @@ src/components/
                 └── GeneralPractitionerSelectField.tsx  — inline GP picker + "create" trigger inside the contact form
 ```
 
-**Directory convention**: keep at most ~3 files directly inside a feature directory before splitting into a sub-module (see `ContactList/`, `PractitionerList/` above). A `hooks/` (or `utils/`) subdirectory scoped to one feature is exempt from that limit — see `Contacts/hooks/` and `WeeklyView/grid/hooks/`.
+**Directory convention**: keep at most ~3 files directly inside a feature directory before splitting into a sub-module (see `ContactList/`, `PractitionerList/` above). A `hooks/` (or `utils/`) subdirectory scoped to one feature is exempt from that limit — see `WeeklyView/grid/hooks/`. Hooks shared across features (`useDebouncedSearch`, `useContactSearchSelect`, `useRdvPresentation`) live in `src/hooks/`.
 
 ### Component File Map (fast lookup — see the tree above for the rest)
 
@@ -228,7 +227,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 - Provider: Clerk, wired in `src/routes/__root.tsx`; `src/start.ts` registers `clerkMiddleware()` + CSRF middleware at the request level
 - Gate: `src/routes/_protected.tsx` — a layout route whose `beforeLoad` calls `requireCalendarAccess()`
 - Access check: `src/server/auth.ts` (`requireCalendarAccess`, a `createServerFn`) — redirects to `/sign-in` if unauthenticated, `/forbidden` if missing the `calendar_access` Clerk role
-- Auth port (ported from anime-pwa): `src/domain/auth/` — `models.ts` (`AuthState { isAuthenticated, hasCalendarAccess }`), `port/auth-provider.ts` (`AuthProvider` Context.Tag), `adapter/auth-provider-live.ts` (the **only** server-side Clerk `auth()` import; fails closed to signed-out on any error), `adapter/auth-provider-mock.ts` (`mockAuthProvider(overrides)`, defaults to signed in with access), `application/getAuthState.ts` (+ test), `runtime.ts` (`getCurrentAuthState()`). The tRPC context (`api.trpc.$.tsx`) is `{ auth: AuthState }` and `init.ts`'s middleware checks `isAuthenticated` / `hasCalendarAccess`
+- Auth port (ported from anime-pwa): `src/domain/auth/` — `models.ts` (`AuthState { isAuthenticated, hasCalendarAccess }`), `port/auth-provider.ts` (`AuthProvider` Context.Service), `adapter/auth-provider-live.ts` (the **only** server-side Clerk `auth()` import; fails closed to signed-out on any error), `adapter/auth-provider-mock.ts` (`mockAuthProvider(overrides)`, defaults to signed in with access), `application/getAuthState.ts` (+ test), `runtime.ts` (`getCurrentAuthState()`). The tRPC context (`api.trpc.$.tsx`) is `{ auth: AuthState }` and `init.ts`'s middleware checks `isAuthenticated` / `hasCalendarAccess`
 - **Mocking auth locally**: set `VITE_MOCK_AUTH=true` in the gitignored `.env`. `src/domain/auth/isMockAuth.ts` (`import.meta.env.DEV && VITE_MOCK_AUTH === 'true'`, so always `false` in `vite build`) makes `runtime.ts` use the mock and skip the dynamic import of the Clerk adapter, and makes `src/components/Layout/SignedInOnly.tsx` render the header without Clerk's `<Show when="signed-in">`. `npm run dev` is then fully usable without signing in. **The dev server talks to the real Neon DB from `.env`** — don't create test data there
 - Only users with the `calendar_access` role can reach any route nested under `_protected`
 
@@ -239,7 +238,7 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 - Root router: `src/configurations/trpc/router/router.ts` — merges each domain's controller router (`src/domain/<name>/application/controllers/<name>Router.ts`)
 - HTTP endpoint: `src/routes/api.trpc.$.tsx` — `createContext` must be `() => ({})`, never `createTRPCContext` from `@trpc/tanstack-react-query`
 - Client setup: `src/configurations/tanstack-query/root-provider.tsx` — uses `httpBatchStreamLink` + SuperJSON
-- Routers are thin adapters — validate input with Zod, then call `runCalendarEffect`/`runContactEffect`/`runGeneralPractitionerEffect` (each domain's own composition-root function in its `runtime.ts`) around an Effect. When a procedure composes real invariants (find-or-create `day`, RDV overlap conflicts, GP-existence checks), that Effect is a named function in `application/{queries,mutations}/` — the router just calls it. When a procedure is pure 1:1 delegation to a port method with no added logic (e.g. `deleteRdv`, `listAll`), it inlines a small `Effect.gen` calling the port directly in the router instead of a dedicated one-line wrapper file — a named application-layer function exists only when it earns its keep over just calling the port. This is a deliberate rule, not an inconsistency: some procedures call a named function, others inline the port, depending on whether there's real logic to name.
+- Routers are thin adapters — validate input with Zod, then call `runCalendarEffect`/`runContactEffect`/`runGeneralPractitionerEffect` (each domain's own composition-root function in its `runtime.ts`) around an Effect. When a procedure composes real invariants (find-or-create `day`, RDV overlap conflicts, GP-existence checks), that Effect is a named function in `application/{queries,mutations}/` — the router just calls it. When a procedure is pure 1:1 delegation to a port method with no added logic (e.g. `deleteRdv`, `contacts.getById`), it inlines a small `Effect.gen` calling the port directly in the router instead of a dedicated one-line wrapper file — a named application-layer function exists only when it earns its keep over just calling the port. This is a deliberate rule, not an inconsistency: some procedures call a named function, others inline the port, depending on whether there's real logic to name.
 - Each domain's router builds its `catch<Name>Errors` middleware via `catchDomainErrors(errorMappings)` from `#/effect/toTRPCError/toTRPCError.ts` (shared across all three domains) instead of hand-writing an `instanceof` cascade — each router passes only its own domain-specific `[isMatch, code]` mappings (e.g. calendar: `RdvConflictError`→`CONFLICT`, `NotFoundError`→`NOT_FOUND`; GP: just `NotFoundError`→`NOT_FOUND`). `DbError` → generic `INTERNAL_SERVER_ERROR` and the final rethrow-unchanged fallback are handled once, inside `catchDomainErrors` itself.
 
 #### Current tRPC procedures
@@ -252,7 +251,9 @@ Routes live under the `_protected` layout route (`src/routes/_protected.tsx`), w
 | `calendar` | `addRdv` | `RdvCreateSchema` | Create a new RDV (throws `CONFLICT` on overlap) |
 | `calendar` | `updateRdv` | `UpdateRdvSchema` | Update an existing RDV |
 | `calendar` | `deleteRdv` | `number` | Delete an RDV |
-| `contacts` | `listAll` | — | Fetch all contacts |
+| `contacts` | `search` | `{ search, cursor? }` (search ≤ 100 chars) | One page (50) of the contact search (prefix rule, `features/contacts/SPEC.md` §2) + `nextCursor`; used by the sidebar (infinite) and the two contact Selects (first page) |
+| `contacts` | `getById` | `number` | One contact, or null |
+| `contacts` | `hasHomonym` | `{ firstname, lastname, excludingContactId? }` | Whether another contact has that name (contact form birth-date rule) |
 | `contacts` | `addContact` | `CreateContactSchema` | Create a new contact |
 | `contacts` | `updateContact` | `UpdateContactSchema` | Update an existing contact |
 | `contacts` | `deleteContact` | `number` | Delete a contact |
@@ -314,14 +315,6 @@ Defined in `prisma/schema.prisma` (PostgreSQL via Neon). Generated client output
 - Relation: one `general_practitioner` → many `contact`
 - Deleting one that's still referenced by a `contact` fails at the DB level (no cascade) — the `generalPractitioner.delete` mutation surfaces this as a generic error toast, same as `contacts.deleteContact`'s behavior for RDV references
 
-<<<<<<< HEAD
-**`export_log`** — one row per export
-- `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
-
-**`email_log`** — one row per RDV reminder
-- `id`, `rdv_id` (FK, cascade), `contact_id` (FK, cascade), `target_date` (`@db.Date`, the Monday), `recipient`, `status` (`SENT`/`FAILED`), `error`, `sent_at`; unique `(rdv_id, target_date)` so `record` upserts
-
-After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<name>.sql` (same change), then `npx prisma db push`
 **`export_log`** — one row per export
 - `id` (PK), `exported_at` (Timestamptz) — the latest row starts the next "RDV since last export" range (Paris calendar date)
 
@@ -349,8 +342,8 @@ After any schema change: add the matching SQL to `prisma/migrations/<YYYYMMDD>_<
 | Link a contact to a general practitioner | ✅ Done | `contact.general_practitioner_id`, `GeneralPractitionerSelectField.tsx` |
 | Auth (Clerk, mockable locally) | ✅ Done | `src/start.ts`, `src/routes/_protected.tsx`, `src/server/auth.ts`, `src/domain/auth/` |
 | Role-based access | ✅ Done | `calendar_access` Clerk role |
-| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-export-import/` |
-| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/weekly-email/` |
+| Excel export/import (header buttons) | ✅ Done | `src/components/Layout/DataTransfer/`, `src/utils/excel/`, `src/domain/dataTransfer/`, `src/services/dataTransferService.ts`; tickets + backlog in `features/data-transfer/` |
+| Weekly reminder email (Brevo + cron) | ✅ Done | `src/domain/reminder/`, `src/server.ts` (custom Worker entry: `fetch` + `scheduled`), `src/components/Reminders/`, `src/services/reminderService.ts`, route `/rappels`; tickets + backlog in `features/reminders/` |
 
 ---
 

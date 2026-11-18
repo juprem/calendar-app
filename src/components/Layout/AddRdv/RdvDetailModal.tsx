@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Modal, Popconfirm } from 'antd';
 import dayjs from 'dayjs';
-import { Clock, User, FileText, Trash2, Pencil, CalendarClock } from 'lucide-react';
+import { Clock, User, FileText, Trash, Pencil, CalendarClock } from 'lucide-react';
 import { RdvStatusIcon } from '#/components/RdvStatusIcon.tsx';
 import type { RdvWithContact } from '#/domain/calendar/models.ts';
 import { CONFIRMATION_MODE_OPTIONS, getRdvTypeStyle } from '#/models/RdvModel.ts';
@@ -103,7 +103,7 @@ export function RdvDetailModal({ rdv, isoDate, open, onClose }: RdvDetailModalPr
               cancelText="Annuler"
               okButtonProps={{ danger: true }}
             >
-              <Button danger icon={<Trash2 size={13} />} loading={isDeleting}>
+              <Button danger icon={<Trash size={13} />} loading={isDeleting}>
                 Supprimer
               </Button>
             </Popconfirm>

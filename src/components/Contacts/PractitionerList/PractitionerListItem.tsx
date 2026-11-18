@@ -1,5 +1,5 @@
 import { Button, Popconfirm, Tooltip } from 'antd';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash } from 'lucide-react';
 import { ContactAvatar } from '#/components/Contacts/ContactDetail/ContactAvatar.tsx';
 import type { GeneralPractitioner } from '#/domain/generalPractitioner/models.ts';
 import { formatGeneralPractitionerName } from '#/models/GeneralPractitionerModel.ts';
@@ -41,7 +41,7 @@ export function PractitionerListItem({ practitioner, onEdit }: PractitionerListI
           cancelText="Annuler"
           okButtonProps={{ danger: true }}
         >
-          <Button shape="round" size="small" danger icon={<Trash2 size={13} />} loading={isDeleting} />
+          <Button shape="round" size="small" danger icon={<Trash size={13} />} loading={isDeleting} />
         </Popconfirm>
       </div>
     </div>

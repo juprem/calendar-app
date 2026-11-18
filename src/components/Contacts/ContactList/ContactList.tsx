@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Tabs } from 'antd';
 import { Stethoscope, Users } from 'lucide-react';
-import type { Contact } from '#/domain/contact/models.ts';
 import { ContactListPanel } from '#/components/Contacts/ContactList/ContactListPanel.tsx';
 import { PractitionerList } from '#/components/Contacts/PractitionerList/PractitionerList.tsx';
 
@@ -12,14 +11,11 @@ function isListMode(value: string): value is ListMode {
 }
 
 interface ContactListProps {
-  contacts: Contact[];
   selectedId: number | null;
   onSelect: (id: number) => void;
-  isLoading?: boolean;
-  isError?: boolean;
 }
 
-export function ContactList({ contacts, selectedId, onSelect, isLoading = false, isError = false }: ContactListProps) {
+export function ContactList({ selectedId, onSelect }: ContactListProps) {
   const [listMode, setListMode] = useState<ListMode>('contacts');
 
   return (
@@ -56,13 +52,7 @@ export function ContactList({ contacts, selectedId, onSelect, isLoading = false,
       />
 
       {listMode === 'contacts' ? (
-        <ContactListPanel
-          contacts={contacts}
-          selectedId={selectedId}
-          onSelect={onSelect}
-          isLoading={isLoading}
-          isError={isError}
-        />
+        <ContactListPanel selectedId={selectedId} onSelect={onSelect} />
       ) : (
         <PractitionerList />
       )}

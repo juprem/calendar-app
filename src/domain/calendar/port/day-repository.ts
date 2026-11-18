@@ -2,7 +2,7 @@ import { Context, Effect, Option } from 'effect';
 import type { DbError } from '#/effect/errors.ts';
 import type { Day, DayWithRdvs } from '../models.ts';
 
-export class DayRepository extends Context.Tag('DayRepository')<
+export class DayRepository extends Context.Service<
   DayRepository,
   {
     readonly findByDate: (date: Date) => Effect.Effect<Option.Option<Day>, DbError>;
@@ -11,4 +11,4 @@ export class DayRepository extends Context.Tag('DayRepository')<
     readonly findWithRdvsByDate: (date: Date) => Effect.Effect<Option.Option<DayWithRdvs>, DbError>;
     readonly findManyWithRdvsInRange: (start: Date, end: Date) => Effect.Effect<DayWithRdvs[], DbError>;
   }
->() {}
+>()('DayRepository') {}

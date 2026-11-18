@@ -60,3 +60,18 @@ export type UpdateContact = z.infer<typeof UpdateContactSchema>;
 export type RdvHistoryEntry = RdvWithContact & {
   readonly day: { readonly date: Date };
 };
+
+export const CONTACT_PAGE_SIZE = 50;
+const SEARCH_MAX_LENGTH = 100;
+const NAME_MAX_LENGTH = 200;
+
+export const SearchContactsSchema = z.object({
+  search: z.string().max(SEARCH_MAX_LENGTH),
+  cursor: z.number().int().nonnegative().nullish(),
+});
+
+export const HasHomonymSchema = z.object({
+  firstname: z.string().max(NAME_MAX_LENGTH),
+  lastname: z.string().max(NAME_MAX_LENGTH),
+  excludingContactId: z.number().int().optional(),
+});

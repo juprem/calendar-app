@@ -11,8 +11,8 @@ export const mockExportLog = (overrides: Partial<ExportLog> = {}): ExportLog => 
   ...overrides,
 });
 
-type ExportLogRepositoryShape = Context.Tag.Service<typeof ExportLogRepository>;
-type DataImportRepositoryShape = Context.Tag.Service<typeof DataImportRepository>;
+type ExportLogRepositoryShape = Context.Service.Shape<typeof ExportLogRepository>;
+type DataImportRepositoryShape = Context.Service.Shape<typeof DataImportRepository>;
 
 export const mockExportLogRepository = (overrides: Partial<ExportLogRepositoryShape> = {}) =>
   Layer.succeed(ExportLogRepository, {

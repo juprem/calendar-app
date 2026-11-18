@@ -9,30 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SignInIndexRouteImport } from './routes/sign-in/index'
+import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as ForbiddenIndexRouteImport } from './routes/forbidden/index'
+import { Route as SignInIndexRouteImport } from './routes/sign-in/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in/$'
-import { Route as ProtectedRappelsIndexRouteImport } from './routes/_protected/rappels/index'
-import { Route as ProtectedMensuelleIndexRouteImport } from './routes/_protected/mensuelle/index'
-import { Route as ProtectedJournaliereIndexRouteImport } from './routes/_protected/journaliere/index'
-import { Route as ProtectedHebdomadaireIndexRouteImport } from './routes/_protected/hebdomadaire/index'
 import { Route as ProtectedContactsIndexRouteImport } from './routes/_protected/contacts/index'
+import { Route as ProtectedHebdomadaireIndexRouteImport } from './routes/_protected/hebdomadaire/index'
+import { Route as ProtectedJournaliereIndexRouteImport } from './routes/_protected/journaliere/index'
+import { Route as ProtectedMensuelleIndexRouteImport } from './routes/_protected/mensuelle/index'
+import { Route as ProtectedRappelsIndexRouteImport } from './routes/_protected/rappels/index'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 
-const ProtectedRoute = ProtectedRouteImport.update({
-  id: '/_protected',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInIndexRoute = SignInIndexRouteImport.update({
-  id: '/sign-in/',
-  path: '/sign-in/',
+const ProtectedRoute = ProtectedRouteImport.update({
+  id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForbiddenIndexRoute = ForbiddenIndexRouteImport.update({
@@ -40,36 +35,41 @@ const ForbiddenIndexRoute = ForbiddenIndexRouteImport.update({
   path: '/forbidden/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignInIndexRoute = SignInIndexRouteImport.update({
+  id: '/sign-in/',
+  path: '/sign-in/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignInSplatRoute = SignInSplatRouteImport.update({
   id: '/sign-in/$',
   path: '/sign-in/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedRappelsIndexRoute = ProtectedRappelsIndexRouteImport.update({
-  id: '/rappels/',
-  path: '/rappels/',
+const ProtectedContactsIndexRoute = ProtectedContactsIndexRouteImport.update({
+  id: '/contacts/',
+  path: '/contacts/',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedMensuelleIndexRoute = ProtectedMensuelleIndexRouteImport.update({
-  id: '/mensuelle/',
-  path: '/mensuelle/',
-  getParentRoute: () => ProtectedRoute,
-} as any)
-const ProtectedJournaliereIndexRoute =
-  ProtectedJournaliereIndexRouteImport.update({
-    id: '/journaliere/',
-    path: '/journaliere/',
-    getParentRoute: () => ProtectedRoute,
-  } as any)
 const ProtectedHebdomadaireIndexRoute =
   ProtectedHebdomadaireIndexRouteImport.update({
     id: '/hebdomadaire/',
     path: '/hebdomadaire/',
     getParentRoute: () => ProtectedRoute,
   } as any)
-const ProtectedContactsIndexRoute = ProtectedContactsIndexRouteImport.update({
-  id: '/contacts/',
-  path: '/contacts/',
+const ProtectedJournaliereIndexRoute =
+  ProtectedJournaliereIndexRouteImport.update({
+    id: '/journaliere/',
+    path: '/journaliere/',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedMensuelleIndexRoute = ProtectedMensuelleIndexRouteImport.update({
+  id: '/mensuelle/',
+  path: '/mensuelle/',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedRappelsIndexRoute = ProtectedRappelsIndexRouteImport.update({
+  id: '/rappels/',
+  path: '/rappels/',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
@@ -167,13 +167,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_protected': {
-      id: '/_protected'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof ProtectedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -181,11 +174,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in/': {
-      id: '/sign-in/'
-      path: '/sign-in'
-      fullPath: '/sign-in/'
-      preLoaderRoute: typeof SignInIndexRouteImport
+    '/_protected': {
+      id: '/_protected'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forbidden/': {
@@ -195,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForbiddenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sign-in/': {
+      id: '/sign-in/'
+      path: '/sign-in'
+      fullPath: '/sign-in/'
+      preLoaderRoute: typeof SignInIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign-in/$': {
       id: '/sign-in/$'
       path: '/sign-in/$'
@@ -202,25 +202,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/rappels/': {
-      id: '/_protected/rappels/'
-      path: '/rappels'
-      fullPath: '/rappels/'
-      preLoaderRoute: typeof ProtectedRappelsIndexRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/mensuelle/': {
-      id: '/_protected/mensuelle/'
-      path: '/mensuelle'
-      fullPath: '/mensuelle/'
-      preLoaderRoute: typeof ProtectedMensuelleIndexRouteImport
-      parentRoute: typeof ProtectedRoute
-    }
-    '/_protected/journaliere/': {
-      id: '/_protected/journaliere/'
-      path: '/journaliere'
-      fullPath: '/journaliere/'
-      preLoaderRoute: typeof ProtectedJournaliereIndexRouteImport
+    '/_protected/contacts/': {
+      id: '/_protected/contacts/'
+      path: '/contacts'
+      fullPath: '/contacts/'
+      preLoaderRoute: typeof ProtectedContactsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/hebdomadaire/': {
@@ -230,11 +216,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedHebdomadaireIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/contacts/': {
-      id: '/_protected/contacts/'
-      path: '/contacts'
-      fullPath: '/contacts/'
-      preLoaderRoute: typeof ProtectedContactsIndexRouteImport
+    '/_protected/journaliere/': {
+      id: '/_protected/journaliere/'
+      path: '/journaliere'
+      fullPath: '/journaliere/'
+      preLoaderRoute: typeof ProtectedJournaliereIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/mensuelle/': {
+      id: '/_protected/mensuelle/'
+      path: '/mensuelle'
+      fullPath: '/mensuelle/'
+      preLoaderRoute: typeof ProtectedMensuelleIndexRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/rappels/': {
+      id: '/_protected/rappels/'
+      path: '/rappels'
+      fullPath: '/rappels/'
+      preLoaderRoute: typeof ProtectedRappelsIndexRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/api/trpc/$': {
