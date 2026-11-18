@@ -1,6 +1,6 @@
 import { Alert, Button, Popconfirm } from 'antd';
 import dayjs from 'dayjs';
-import { CheckCheck, MailCheck, MailQuestion } from 'lucide-react';
+import { CheckCheck, MailCheck, MailQuestionMark } from 'lucide-react';
 import { Card } from '#/components/Card/Card.tsx';
 import { DataState } from '#/components/DataState/DataState.tsx';
 import { MetricCard } from '#/components/MetricCard/MetricCard.tsx';
@@ -42,7 +42,7 @@ export function Reminders() {
           isLoading={isLoading}
           isError={isError}
           isEmpty={!reminderStatus?.hasRun}
-          emptyIcon={<MailQuestion size={40} className="text-[#D6D3D1]" />}
+          emptyIcon={<MailQuestionMark size={40} className="text-[#D6D3D1]" />}
           emptyText={`Aucun envoi pour le moment. Prochain envoi dimanche à 12h pour le lundi ${targetDateLabel}.`}
         >
           {reminderStatus && (

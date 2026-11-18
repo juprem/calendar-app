@@ -1,5 +1,5 @@
 import { Button, Form, Popconfirm } from 'antd';
-import { Trash2 } from 'lucide-react';
+import { Trash } from 'lucide-react';
 import dayjs from 'dayjs';
 import type { Dayjs } from 'dayjs';
 import type { RdvFormValues } from '#/models/RdvModel.ts';
@@ -84,7 +84,7 @@ export function RdvEditForm({ rdv, isoDate, onSuccess, onCancel }: RdvEditFormPr
           cancelText="Annuler"
           okButtonProps={{ danger: true }}
         >
-          <Button danger icon={<Trash2 size={13} />} loading={isDeleting}>
+          <Button danger icon={<Trash size={13} />} loading={isDeleting}>
             Supprimer
           </Button>
         </Popconfirm>
