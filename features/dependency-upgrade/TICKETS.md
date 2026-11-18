@@ -7,7 +7,7 @@ Status: ⚪ not started · 🟡 partly done · 🔴 deviation · ✅ done
 
 | Status | Wave | Ticket | Size | Depends on |
 |---|---|---|---|---|
-| 🟡 | A | CAL-DEP-1 — Align Prisma and Tailwind versions | S | — |
+| ✅ | A | CAL-DEP-1 — Align Prisma and Tailwind versions | S | — |
 | 🟡 | B | CAL-DEP-2 — Minor and patch updates (incl. TypeScript types) | M | CAL-DEP-1 (same lockfile) |
 | ✅ | C | CAL-DEP-3 — Other major upgrades | M | CAL-DEP-2 (same lockfile) |
 | ⚪ | D | CAL-DEP-4 — Effect 3 → 4 | M | CAL-DEP-3 (same lockfile, needs a green baseline) |
@@ -39,7 +39,7 @@ Packages from the same family are on different versions. Prisma's client and CLI
 - [x] `npx prisma generate` rerun (`generated/prisma` is git-ignored, nothing to commit)
 - [x] The `allowScripts` entries for `prisma@` and `@prisma/engines@` are updated to the new version
 - [x] `tailwindcss` and `@tailwindcss/vite` are on the same version
-- [ ] No visual regression on the calendar week view and the contact form (screenshots compared before and after) — **pending: manual check, the 4.1→4.3 CSS diff could not be produced in-session**
+- [x] No visual regression on the calendar week view and the contact form (accepted by the user without a screenshot comparison)
 - [x] Do not follow npm's `latest` tag for `prisma`: it points to `8.0.0-rc`
 
 ---
