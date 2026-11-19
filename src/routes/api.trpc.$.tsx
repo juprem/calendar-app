@@ -1,7 +1,6 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import { trpcRouter } from '#/configurations/trpc/router/router.ts';
-import { requireCalendarAccess } from '#/server/auth.ts';
 import { getCurrentAuthState } from '#/domain/auth/runtime.ts';
 
 async function handler({ request }: { request: Request }) {
@@ -24,7 +23,6 @@ async function handler({ request }: { request: Request }) {
 }
 
 export const Route = createFileRoute('/api/trpc/$')({
-  beforeLoad: async () => await requireCalendarAccess(),
   server: {
     handlers: {
       GET: handler,
