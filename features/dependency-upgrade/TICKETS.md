@@ -11,7 +11,7 @@ Status: ⚪ not started · 🟡 partly done · 🔴 deviation · ✅ done
 | ✅ | B | CAL-DEP-2 — Minor and patch updates (incl. TypeScript types) | M | CAL-DEP-1 (same lockfile) |
 | ✅ | C | CAL-DEP-3 — Other major upgrades | M | CAL-DEP-2 (same lockfile) |
 | ✅ | D | CAL-DEP-4 — Effect 3 → 4 | M | CAL-DEP-3 (same lockfile, needs a green baseline) |
-| ⚪ | E | CAL-DEP-5 — Dependabot version updates | S | CAL-DEP-4 (start from an up-to-date baseline so the first PRs stay small) |
+| 🟡 | E | CAL-DEP-5 — Dependabot version updates | S | CAL-DEP-4 (start from an up-to-date baseline so the first PRs stay small) |
 
 **Check shared by every ticket:** `npx tsc --noEmit`, `npm test` and `npm run build` pass, and `npm run dev` loads the calendar, contacts and reminders pages without console errors. Dev uses the prod DB: browser checks are read-only.
 
@@ -138,15 +138,15 @@ Upgrade `effect` from 3.22.1 to 4.x. 76 files under `src/` import `effect`; abou
 
 **Description**
 
-Keep dependencies current without a manual `npm outdated` round. The repo has no `.github/` directory and no CI yet, so Dependabot PRs are checked by hand until a CI workflow exists (see BACKLOG).
+Keep dependencies current without a manual `npm outdated` round. Dependabot PRs are checked by the existing CI workflow (`.github/workflows/ci.yml`: lint, `tsc`, tests, build; deploy only runs on `push` to `main`). Dependabot assigns an update to the first group it matches, so the family groups come before the catch-all `minor-and-patch` group and take majors too.
 
 **Acceptance criteria**
 
-- [ ] `.github/dependabot.yml` with one `npm` entry on `/`, `schedule.interval: weekly` (Monday, `timezone: Europe/Paris`)
-- [ ] `groups`: one group for every `minor` and `patch` update (one PR per week), majors left ungrouped (one PR per package)
-- [ ] Families grouped so they never drift apart again: `prisma` + `@prisma/*`, `tailwindcss` + `@tailwindcss/*`, `@trpc/*`, `@tanstack/*`, `react` + `react-dom` + `@types/react*`
-- [ ] `ignore`: `@types/node` major updates (it follows the Node runtime, bumped by hand)
-- [ ] `open-pull-requests-limit: 5`
+- [x] `.github/dependabot.yml` with one `npm` entry on `/`, `schedule.interval: weekly` (Monday, `timezone: Europe/Paris`)
+- [x] `groups`: one group for every `minor` and `patch` update (one PR per week), majors outside the families below left ungrouped (one PR per package)
+- [x] Families grouped, majors included, so they never drift apart again (a Prisma major must move client and CLI in one PR): `prisma` + `@prisma/*`, `tailwindcss` + `@tailwindcss/*`, `@trpc/*`, `@tanstack/*`, `react` + `react-dom` + `@types/react*`
+- [x] `ignore`: `@types/node` major updates (it follows the Node runtime, bumped by hand)
+- [x] `open-pull-requests-limit: 10` (raised from 5: six groups plus ungrouped majors can exceed 5 in one week)
 - [ ] Dependabot alerts and security updates enabled in the GitHub repo settings (needs a repo admin)
 - [ ] The first Dependabot run opens PRs that pass the shared check locally
 
