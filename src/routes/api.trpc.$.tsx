@@ -1,16 +1,14 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { createFileRoute } from '@tanstack/react-router'
 import { trpcRouter } from '#/configurations/trpc/router/router.ts';
-import { getCurrentAuthState } from '#/domain/auth/runtime.ts';
+import { createTRPCContext } from '#/configurations/trpc/init.ts';
 
 async function handler({ request }: { request: Request }) {
-  const authState = await getCurrentAuthState()
-
   const response = await fetchRequestHandler({
     req: request,
     router: trpcRouter,
     endpoint: '/api/trpc',
-    createContext: () => ({ auth: authState }),
+    createContext: createTRPCContext,
   })
 
   const body = await response.text()
