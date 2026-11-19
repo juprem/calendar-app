@@ -6,11 +6,12 @@ export type TRPCContext = {
   auth: AuthState
 }
 
-const t = initTRPC.context<TRPCContext>().create({
+const trpcRoot = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
+  isDev: false,
 })
 
-const authedMiddleware = t.middleware(({ ctx, next }) => {
+const authedMiddleware = trpcRoot.middleware(({ ctx, next }) => {
   if (!ctx.auth.isAuthenticated) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })
   }
@@ -20,6 +21,6 @@ const authedMiddleware = t.middleware(({ ctx, next }) => {
   return next({ ctx })
 })
 
-export const createTRPCRouter = t.router
-export const protectedProcedure = t.procedure.use(authedMiddleware)
-export const middleware = t.middleware
+export const createTRPCRouter = trpcRoot.router
+export const protectedProcedure = trpcRoot.procedure.use(authedMiddleware)
+export const middleware = trpcRoot.middleware

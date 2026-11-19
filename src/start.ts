@@ -1,8 +1,9 @@
 import { createStart, createCsrfMiddleware } from '@tanstack/react-start';
 import { clerkMiddleware } from '@clerk/tanstack-react-start/server';
+import { needsOriginCheck } from '#/utils/requestUtils.ts';
 
 const csrfMiddleware = createCsrfMiddleware({
-  filter: (ctx) => ctx.handlerType === 'serverFn',
+  filter: (ctx) => needsOriginCheck(ctx.handlerType, ctx.request),
 })
 
 
