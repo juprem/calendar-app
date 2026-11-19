@@ -1,10 +1,13 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import superjson from 'superjson'
 import type { AuthState } from '#/domain/auth/models.ts'
+import { getCurrentAuthState } from '#/domain/auth/runtime.ts'
 
 export type TRPCContext = {
   auth: AuthState
 }
+
+export const createTRPCContext = async (): Promise<TRPCContext> => ({ auth: await getCurrentAuthState() })
 
 const trpcRoot = initTRPC.context<TRPCContext>().create({
   transformer: superjson,
