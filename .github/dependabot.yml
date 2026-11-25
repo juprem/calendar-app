@@ -1,0 +1,26 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Europe/Paris
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      prisma:
+        patterns: ["prisma", "@prisma/*"]
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*"]
+      trpc:
+        patterns: ["@trpc/*"]
+      tanstack:
+        patterns: ["@tanstack/*"]
+      react:
+        patterns: ["react", "react-dom", "@types/react*"]
+      minor-and-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
